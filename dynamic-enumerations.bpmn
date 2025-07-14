@@ -196,7 +196,7 @@ del(checkboxes)</spiffworkflow:postScript>
     <bpmn:sequenceFlow id="Flow_19doibk" sourceRef="Activity_139gu4j" targetRef="Activity_1iqhr51" />
     <bpmn:manualTask id="Activity_139gu4j" name="Show Updated Method 2">
       <bpmn:extensionElements>
-        <spiffworkflow:instructionsForEndUser>Added altitude and Paris </spiffworkflow:instructionsForEndUser>
+        <spiffworkflow:instructionsForEndUser>Added altitude and Paris in order to</spiffworkflow:instructionsForEndUser>
         <spiffworkflow:postScript># Delete form variable
 del(location)
 del(locationRadio)
