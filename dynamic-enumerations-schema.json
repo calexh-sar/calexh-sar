@@ -1,0 +1,34 @@
+{
+  "definitions": {
+    "locations": {
+      "enum": {{ enum_object|tojson }}
+    }
+  },
+  "type": "object",
+  "properties": {
+    "location": {
+      "title": "Location",
+      "$ref": "#/definitions/locations"
+    },
+    "locationRadio": {
+      "title": "Location Radio",
+      "$ref": "#/definitions/locations"
+    },
+    "multiSelect": {
+      "title": "Locations",
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/definitions/locations"
+      }
+    },
+    "checkboxes": {
+      "title": "Locations Checkboxes",
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/definitions/locations"
+      }
+    }
+  }
+}
