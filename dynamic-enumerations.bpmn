@@ -264,6 +264,9 @@ del(enum_dict)</bpmn:script>
       <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
         <dc:Bounds x="-348" y="159" width="36" height="36" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_14za570_di" bpmnElement="EndEvent_1">
+        <dc:Bounds x="2132" y="159" width="36" height="36" />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0gch873_di" bpmnElement="Activity_0zkoca1">
         <dc:Bounds x="1080" y="137" width="100" height="80" />
         <bpmndi:BPMNLabel />
@@ -312,9 +315,6 @@ del(enum_dict)</bpmn:script>
       <bpmndi:BPMNShape id="Activity_076qqk0_di" bpmnElement="Activity_1sn7kd9">
         <dc:Bounds x="1770" y="137" width="100" height="80" />
         <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_14za570_di" bpmnElement="EndEvent_1">
-        <dc:Bounds x="2132" y="159" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0tkrk1u_di" bpmnElement="Activity_1gane8x">
         <dc:Bounds x="1950" y="137" width="100" height="80" />
