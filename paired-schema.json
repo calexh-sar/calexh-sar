@@ -1,0 +1,41 @@
+{
+  "title": "Yogi Berra Quote Challenge",
+  "type": "object",
+  "required": [
+    "full_quote"
+  ],
+  "properties": {
+    "full_quote": {
+      "type": "string",
+      "title": "Select Yogism to complete",
+      "enum": [
+        "If you don't know where you are going, you might wind up someplace else.",
+        "When you come to a fork in the road, take it.",
+        "Nobody goes there anymore. It's too crowder."
+      ],
+      "enumNames": [
+        "if you don't know where you are going, you,,,",
+        "When you come to a fork in the road,...",
+        "Nobody goes there anymore. It's..."
+      ]
+    },
+    "end_quote": {
+      "type": "string",
+      "title": "Enter how quote ends"
+    },
+    "prize": {
+      "type": "string",
+      "title": "Select prize if you are correct",
+      "enum": [
+        "TR-003",
+        "TR-122",
+        "TR-128"
+      ],
+      "enumNames": [
+        "Luxury Yacht",
+        "Skatebaord",
+        "Socks"
+      ]
+    }
+  }
+}
