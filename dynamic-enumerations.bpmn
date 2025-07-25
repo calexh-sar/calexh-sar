@@ -6,7 +6,7 @@
     </bpmn:startEvent>
     <bpmn:sequenceFlow id="Flow_17db3yp" sourceRef="StartEvent_1" targetRef="Activity_0oov0hp" />
     <bpmn:endEvent id="EndEvent_1">
-      <bpmn:incoming>Flow_0zbvvfc</bpmn:incoming>
+      <bpmn:incoming>Flow_11wec7z</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:userTask id="Activity_0zkoca1" name="Get Enums From Script Task">
       <bpmn:extensionElements>
@@ -240,7 +240,7 @@ del(i1)
 del(i2)
 del(enum_dict)</bpmn:script>
     </bpmn:scriptTask>
-    <bpmn:sequenceFlow id="Flow_0zbvvfc" sourceRef="Activity_1sn7kd9" targetRef="EndEvent_1" />
+    <bpmn:sequenceFlow id="Flow_0zbvvfc" sourceRef="Activity_1sn7kd9" targetRef="Activity_1gane8x" />
     <bpmn:userTask id="Activity_1sn7kd9" name="Get Enums">
       <bpmn:extensionElements>
         <spiffworkflow:properties>
@@ -250,14 +250,19 @@ del(enum_dict)</bpmn:script>
       <bpmn:incoming>Flow_05fftxf</bpmn:incoming>
       <bpmn:outgoing>Flow_0zbvvfc</bpmn:outgoing>
     </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_11wec7z" sourceRef="Activity_1gane8x" targetRef="EndEvent_1" />
+    <bpmn:manualTask id="Activity_1gane8x" name="Show Conclusion">
+      <bpmn:extensionElements>
+        <spiffworkflow:instructionsForEndUser>In conclusion,</spiffworkflow:instructionsForEndUser>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0zbvvfc</bpmn:incoming>
+      <bpmn:outgoing>Flow_11wec7z</bpmn:outgoing>
+    </bpmn:manualTask>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_dynamic_enumerations_e7wuybd">
       <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
         <dc:Bounds x="-348" y="159" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_14za570_di" bpmnElement="EndEvent_1">
-        <dc:Bounds x="1962" y="159" width="36" height="36" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0gch873_di" bpmnElement="Activity_0zkoca1">
         <dc:Bounds x="1080" y="137" width="100" height="80" />
@@ -307,6 +312,12 @@ del(enum_dict)</bpmn:script>
       <bpmndi:BPMNShape id="Activity_076qqk0_di" bpmnElement="Activity_1sn7kd9">
         <dc:Bounds x="1770" y="137" width="100" height="80" />
         <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_14za570_di" bpmnElement="EndEvent_1">
+        <dc:Bounds x="2132" y="159" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0tkrk1u_di" bpmnElement="Activity_1gane8x">
+        <dc:Bounds x="1950" y="137" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow_17db3yp_di" bpmnElement="Flow_17db3yp">
         <di:waypoint x="-312" y="177" />
@@ -362,7 +373,11 @@ del(enum_dict)</bpmn:script>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0zbvvfc_di" bpmnElement="Flow_0zbvvfc">
         <di:waypoint x="1870" y="177" />
-        <di:waypoint x="1962" y="177" />
+        <di:waypoint x="1950" y="177" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_11wec7z_di" bpmnElement="Flow_11wec7z">
+        <di:waypoint x="2050" y="177" />
+        <di:waypoint x="2132" y="177" />
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
