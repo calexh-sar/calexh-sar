@@ -1,0 +1,384 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:spiffworkflow="http://spiffworkflow.org/bpmn/schema/1.0/core" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_96f6665" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.0.0-dev">
+  <bpmn:process id="Process_dynamic_enumerations_e7wuybd" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_17db3yp</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_17db3yp" sourceRef="StartEvent_1" targetRef="Activity_0oov0hp" />
+    <bpmn:endEvent id="EndEvent_1">
+      <bpmn:incoming>Flow_11wec7z</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:userTask id="Activity_0zkoca1" name="Get Enums From Script Task">
+      <bpmn:extensionElements>
+        <spiffworkflow:properties>
+          <spiffworkflow:property name="formJsonSchemaFilename" value="dynamic-enumerations-schema.json" />
+          <spiffworkflow:property name="formUiSchemaFilename" value="dynamic-enumerations-uischema.json" />
+        </spiffworkflow:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0rahxv6</bpmn:incoming>
+      <bpmn:outgoing>Flow_0q9y41q</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:businessRuleTask id="Activity_0e9cbtc" name="Collect City Lists">
+      <bpmn:extensionElements>
+        <spiffworkflow:calledDecisionId>Collect_Enum_Object</spiffworkflow:calledDecisionId>
+        <spiffworkflow:postScript># Define enum_list and enum_list_names with collected fields from DMN table
+enum_lists = [lat, lon, name]
+enum_list_names = ["lat", "lon", "name"]
+
+# Define which list to show in the enum dropdown
+enum_names = name</spiffworkflow:postScript>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0bcdet9</bpmn:incoming>
+      <bpmn:outgoing>Flow_18bd6mh</bpmn:outgoing>
+    </bpmn:businessRuleTask>
+    <bpmn:sequenceFlow id="Flow_18bd6mh" sourceRef="Activity_0e9cbtc" targetRef="Activity_04xt7gu" />
+    <bpmn:sequenceFlow id="Flow_0q9y41q" sourceRef="Activity_0zkoca1" targetRef="Activity_139gu4j" />
+    <bpmn:sequenceFlow id="Flow_0bb3woo" sourceRef="Activity_1vp4jcs" targetRef="Activity_0f0a74c" />
+    <bpmn:sequenceFlow id="Flow_0z00um4" sourceRef="Activity_04xt7gu" targetRef="Activity_1vp4jcs" />
+    <bpmn:scriptTask id="Activity_04xt7gu" name="Build Enum Lists From DMN Collect">
+      <bpmn:incoming>Flow_18bd6mh</bpmn:incoming>
+      <bpmn:outgoing>Flow_0z00um4</bpmn:outgoing>
+      <bpmn:script># Create enum_objects list
+enum_object = []
+
+# Build enum_objects list
+for i1 in range(len(enum_lists)):
+    enum_dict = {}
+    for i2 in range(len(enum_lists)):
+        enum_dict[enum_list_names[i2]] = enum_lists[i2][i1]
+    
+    enum_object.append(enum_dict)
+
+# Delete unneeded variables
+del(i1)
+del(i2)
+del(enum_dict)</bpmn:script>
+    </bpmn:scriptTask>
+    <bpmn:userTask id="Activity_1vp4jcs" name="Show Enums from DMN Collect">
+      <bpmn:extensionElements>
+        <spiffworkflow:properties>
+          <spiffworkflow:property name="formJsonSchemaFilename" value="dynamic-enumerations-schema.json" />
+          <spiffworkflow:property name="formUiSchemaFilename" value="dynamic-enumerations-uischema.json" />
+        </spiffworkflow:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0z00um4</bpmn:incoming>
+      <bpmn:outgoing>Flow_0bb3woo</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_0rahxv6" sourceRef="Activity_0h9p7m8" targetRef="Activity_0zkoca1" />
+    <bpmn:scriptTask id="Activity_0h9p7m8" name="Set Enum Data in Script Task">
+      <bpmn:incoming>Flow_1up6ls5</bpmn:incoming>
+      <bpmn:outgoing>Flow_0rahxv6</bpmn:outgoing>
+      <bpmn:script># Delete previous enum variables
+del(enum_object)
+del(enum_names)
+
+# Add dictionaries
+amsterdam = {"lat": 52, "lon": 5, "name": "Amsterdam"}
+hong_kong = {"lat": 22, "lon": 114, "name": "Hong Kong"}
+new_york = {"lat": 40, "lon": 74, "name": "New York"}
+
+# Initiate required lists
+enum_object = []
+enum_names = []
+
+# Update required lists from dictionaries
+enum_object.append(amsterdam)
+enum_names.append(amsterdam["name"])
+
+enum_object.append(hong_kong)
+enum_names.append(hong_kong["name"])
+
+enum_object.append(new_york)
+enum_names.append(new_york["name"])
+
+# Delete dictionaries
+del(amsterdam)
+del(hong_kong)
+del(new_york)</bpmn:script>
+    </bpmn:scriptTask>
+    <bpmn:sequenceFlow id="Flow_1xseql4" sourceRef="Activity_1465acc" targetRef="Activity_0020ruy" />
+    <bpmn:userTask id="Activity_1465acc" name="Show Enums">
+      <bpmn:extensionElements>
+        <spiffworkflow:properties>
+          <spiffworkflow:property name="formJsonSchemaFilename" value="enumerations-schema.json" />
+          <spiffworkflow:property name="formUiSchemaFilename" value="enumerations-uischema.json" />
+        </spiffworkflow:properties>
+        <spiffworkflow:preScript />
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0i3rjhv</bpmn:incoming>
+      <bpmn:outgoing>Flow_1xseql4</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_0i3rjhv" sourceRef="Activity_0oov0hp" targetRef="Activity_1465acc" />
+    <bpmn:manualTask id="Activity_0oov0hp" name="Show Method 1">
+      <bpmn:extensionElements>
+        <spiffworkflow:instructionsForEndUser>This Dynamic Enumerations example is based off of the 'Enumerated objects' example found on the [react-jsonschema-form examples page](https://rjsf-team.github.io/react-jsonschema-form/).  
+
+Launch the Web Form Editor for the Show Enums User Task and note in the Json Schema the format of the enum found in the:  
+&lt;pre&gt;
+"definitions": {   
+  "locations": {  
+    "enum": 
+&lt;/pre&gt;
+section at the top.  It is a list of dictionaries, each dictionary containing key values pairs for a city and its corresponding longitude and latitude.
+
+This format is recreated in two different ways in this example and dynamically inserted in the Json Schema using Jinja.  
+
+Click Continue below to see four different styles of the same enum in the resulting form, which are:  
+1. Single select dropdown
+2. Single select radio buttons
+3. Multi-select dropdown
+4. Multi-select checkboxes</spiffworkflow:instructionsForEndUser>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_17db3yp</bpmn:incoming>
+      <bpmn:outgoing>Flow_0i3rjhv</bpmn:outgoing>
+    </bpmn:manualTask>
+    <bpmn:sequenceFlow id="Flow_0bcdet9" sourceRef="Activity_0020ruy" targetRef="Activity_0e9cbtc" />
+    <bpmn:manualTask id="Activity_0020ruy" name="Show Method 2">
+      <bpmn:extensionElements>
+        <spiffworkflow:instructionsForEndUser>Next the example process builds the needed enum format from a DMN table and displays the form with these values dynamically inserted using Jinja.  
+
+The Collect Hit Policy is used to create a list for each of the output columns, `lat`, `lon` and `name`, containing the values entered in each row.  Note the Post Script on the Business Rule Task which creates the list `enum_lists`, which contains all the lists resulting from the DMN table and `enum_list_names` which is list containing the names of the lists from the DMN table in text format. For this example there are:
+&lt;pre&gt;
+  enum_lists = [lat, lon, name]
+  enum_list_names = ["lat", "lon", "name"]
+&lt;/pre&gt;
+Also defined by the list `enum_names` is which list to display in the enum, which in this case is `name`.
+&lt;pre&gt;
+  enum_names = name
+&lt;/pre&gt;
+These lists are used in the Script Task to build the enun format.  The resulting list of dictionaries, `enum_object` is in the same format as the originial rjsf example and can now be dynamically inserted into the JsonSchema using Jinja, like this:  
+&lt;pre&gt;
+  &amp;lbrace;&amp;lbrace; enum_object|tojson &amp;rbrace;&amp;rbrace;
+&lt;/pre&gt;
+The `|tojson` option is used in this case since `enum_object` is an array.</spiffworkflow:instructionsForEndUser>
+        <spiffworkflow:postScript># Delete form variable
+del(location)
+del(locationRadio)
+del(multiSelect)
+del(checkboxes)</spiffworkflow:postScript>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1xseql4</bpmn:incoming>
+      <bpmn:outgoing>Flow_0bcdet9</bpmn:outgoing>
+    </bpmn:manualTask>
+    <bpmn:sequenceFlow id="Flow_1up6ls5" sourceRef="Activity_0f0a74c" targetRef="Activity_0h9p7m8" />
+    <bpmn:manualTask id="Activity_0f0a74c" name="Show Method 3">
+      <bpmn:extensionElements>
+        <spiffworkflow:instructionsForEndUser>The next part of the example shows how the required lists, `enun_names` and `enum_object` were obtained from a Script Task so the can be dynamically inserted using Jinja.
+
+The Script Task starts by deleting the two required list built in the DMN table part of the example.
+
+Three dictionaries, one each for their respective city, are next defined.  This imformation could have come of another source, but was hardcoded for this case.
+&lt;pre&gt;
+  amsterdam = {"lat": 52, "lon": 5, "name": "Amsterdam"}
+  hong_kong = {"lat": 22, "lon": 114, "name": "Hong Kong"}
+  new_york = {"lat": 40, "lon": 74, "name": "New York"}
+&lt;/pre&gt;
+Next the required lists are initiated
+&lt;pre&gt;
+  enum_object = []
+  enum_names = []
+&lt;/pre&gt;
+Finally the required lists are updated from the dictionaries, as shown below for Amsterdam, and repeated for Hong Kong and New York.
+&lt;pre&gt;
+  enum_object.append(amsterdam)
+  enum_names.append(amsterdam["name"])
+&lt;/pre&gt;
+The dictionaries were deleted to keep the Task Data clean.</spiffworkflow:instructionsForEndUser>
+        <spiffworkflow:postScript># Delete form variable
+del(location)
+del(locationRadio)
+del(multiSelect)
+del(checkboxes)</spiffworkflow:postScript>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0bb3woo</bpmn:incoming>
+      <bpmn:outgoing>Flow_1up6ls5</bpmn:outgoing>
+    </bpmn:manualTask>
+    <bpmn:sequenceFlow id="Flow_19doibk" sourceRef="Activity_139gu4j" targetRef="Activity_1iqhr51" />
+    <bpmn:manualTask id="Activity_139gu4j" name="Show Updated Method 2">
+      <bpmn:extensionElements>
+        <spiffworkflow:instructionsForEndUser>Added altitude and Paris in order to</spiffworkflow:instructionsForEndUser>
+        <spiffworkflow:postScript># Delete form variable
+del(location)
+del(locationRadio)
+del(multiSelect)
+del(checkboxes)</spiffworkflow:postScript>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0q9y41q</bpmn:incoming>
+      <bpmn:outgoing>Flow_19doibk</bpmn:outgoing>
+    </bpmn:manualTask>
+    <bpmn:sequenceFlow id="Flow_07nf4u8" sourceRef="Activity_1iqhr51" targetRef="Activity_0rq237t" />
+    <bpmn:businessRuleTask id="Activity_1iqhr51" name="Collect Updated City Lists">
+      <bpmn:extensionElements>
+        <spiffworkflow:calledDecisionId>Updated_Collect_Enum_Object</spiffworkflow:calledDecisionId>
+        <spiffworkflow:postScript># Define enum_list and enum_list_names with collected fields from DMN table
+enum_lists = [alt, lat, lon, name]
+enum_list_names = ["alt", "lat", "lon", "name"]
+
+# Define which list to show in the enum dropdown
+enum_names = name</spiffworkflow:postScript>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_19doibk</bpmn:incoming>
+      <bpmn:outgoing>Flow_07nf4u8</bpmn:outgoing>
+    </bpmn:businessRuleTask>
+    <bpmn:sequenceFlow id="Flow_05fftxf" sourceRef="Activity_0rq237t" targetRef="Activity_1sn7kd9" />
+    <bpmn:scriptTask id="Activity_0rq237t" name="Build Enum Lists From DMN Collect">
+      <bpmn:incoming>Flow_07nf4u8</bpmn:incoming>
+      <bpmn:outgoing>Flow_05fftxf</bpmn:outgoing>
+      <bpmn:script># Create enum_objects list
+enum_object = []
+
+# Build enum_objects
+for i1 in range(len(enum_lists)):
+    enum_dict = {}
+    for i2 in range(len(enum_lists)):
+        enum_dict[enum_list_names[i2]] = enum_lists[i2][i1]
+    
+    enum_object.append(enum_dict)
+
+# Delete unneeded variables
+del(i1)
+del(i2)
+del(enum_dict)</bpmn:script>
+    </bpmn:scriptTask>
+    <bpmn:sequenceFlow id="Flow_0zbvvfc" sourceRef="Activity_1sn7kd9" targetRef="Activity_1gane8x" />
+    <bpmn:userTask id="Activity_1sn7kd9" name="Get Enums">
+      <bpmn:extensionElements>
+        <spiffworkflow:properties>
+          <spiffworkflow:property name="formJsonSchemaFilename" value="dynamic-enumerations-schema.json" />
+        </spiffworkflow:properties>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_05fftxf</bpmn:incoming>
+      <bpmn:outgoing>Flow_0zbvvfc</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:sequenceFlow id="Flow_11wec7z" sourceRef="Activity_1gane8x" targetRef="EndEvent_1" />
+    <bpmn:manualTask id="Activity_1gane8x" name="Show Conclusion">
+      <bpmn:extensionElements>
+        <spiffworkflow:instructionsForEndUser>In conclusion,</spiffworkflow:instructionsForEndUser>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0zbvvfc</bpmn:incoming>
+      <bpmn:outgoing>Flow_11wec7z</bpmn:outgoing>
+    </bpmn:manualTask>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_dynamic_enumerations_e7wuybd">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="-348" y="159" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_14za570_di" bpmnElement="EndEvent_1">
+        <dc:Bounds x="2132" y="159" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0gch873_di" bpmnElement="Activity_0zkoca1">
+        <dc:Bounds x="1080" y="137" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_14cyd2z_di" bpmnElement="Activity_0e9cbtc">
+        <dc:Bounds x="280" y="137" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0w51fcd_di" bpmnElement="Activity_04xt7gu">
+        <dc:Bounds x="450" y="137" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1mxmstt_di" bpmnElement="Activity_1vp4jcs">
+        <dc:Bounds x="610" y="137" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0um3ivi_di" bpmnElement="Activity_0h9p7m8">
+        <dc:Bounds x="920" y="137" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1xr1015_di" bpmnElement="Activity_1465acc">
+        <dc:Bounds x="-60" y="137" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0ox8jwi_di" bpmnElement="Activity_0oov0hp">
+        <dc:Bounds x="-240" y="137" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1l4xw9f_di" bpmnElement="Activity_0020ruy">
+        <dc:Bounds x="110" y="137" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0m3q3q2_di" bpmnElement="Activity_0f0a74c">
+        <dc:Bounds x="760" y="137" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1u2tcta_di" bpmnElement="Activity_139gu4j">
+        <dc:Bounds x="1250" y="137" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_02r28pc_di" bpmnElement="Activity_1iqhr51">
+        <dc:Bounds x="1420" y="137" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_13olyzq_di" bpmnElement="Activity_0rq237t">
+        <dc:Bounds x="1590" y="137" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_076qqk0_di" bpmnElement="Activity_1sn7kd9">
+        <dc:Bounds x="1770" y="137" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0tkrk1u_di" bpmnElement="Activity_1gane8x">
+        <dc:Bounds x="1950" y="137" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_17db3yp_di" bpmnElement="Flow_17db3yp">
+        <di:waypoint x="-312" y="177" />
+        <di:waypoint x="-240" y="177" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_18bd6mh_di" bpmnElement="Flow_18bd6mh">
+        <di:waypoint x="380" y="177" />
+        <di:waypoint x="450" y="177" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0q9y41q_di" bpmnElement="Flow_0q9y41q">
+        <di:waypoint x="1180" y="177" />
+        <di:waypoint x="1250" y="177" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0bb3woo_di" bpmnElement="Flow_0bb3woo">
+        <di:waypoint x="710" y="177" />
+        <di:waypoint x="760" y="177" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0z00um4_di" bpmnElement="Flow_0z00um4">
+        <di:waypoint x="550" y="177" />
+        <di:waypoint x="610" y="177" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0rahxv6_di" bpmnElement="Flow_0rahxv6">
+        <di:waypoint x="1020" y="177" />
+        <di:waypoint x="1080" y="177" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1xseql4_di" bpmnElement="Flow_1xseql4">
+        <di:waypoint x="40" y="177" />
+        <di:waypoint x="110" y="177" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0i3rjhv_di" bpmnElement="Flow_0i3rjhv">
+        <di:waypoint x="-140" y="177" />
+        <di:waypoint x="-60" y="177" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0bcdet9_di" bpmnElement="Flow_0bcdet9">
+        <di:waypoint x="210" y="177" />
+        <di:waypoint x="280" y="177" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1up6ls5_di" bpmnElement="Flow_1up6ls5">
+        <di:waypoint x="860" y="177" />
+        <di:waypoint x="920" y="177" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_19doibk_di" bpmnElement="Flow_19doibk">
+        <di:waypoint x="1350" y="177" />
+        <di:waypoint x="1420" y="177" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_07nf4u8_di" bpmnElement="Flow_07nf4u8">
+        <di:waypoint x="1520" y="177" />
+        <di:waypoint x="1590" y="177" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_05fftxf_di" bpmnElement="Flow_05fftxf">
+        <di:waypoint x="1690" y="177" />
+        <di:waypoint x="1770" y="177" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0zbvvfc_di" bpmnElement="Flow_0zbvvfc">
+        <di:waypoint x="1870" y="177" />
+        <di:waypoint x="1950" y="177" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_11wec7z_di" bpmnElement="Flow_11wec7z">
+        <di:waypoint x="2050" y="177" />
+        <di:waypoint x="2132" y="177" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
