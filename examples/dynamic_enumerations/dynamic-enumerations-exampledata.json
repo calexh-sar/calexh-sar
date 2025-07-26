@@ -1,0 +1,42 @@
+{
+  "multiSelect": [
+    {
+      "lat": 52,
+      "lon": 5,
+      "name": "Amsterdam"
+    },
+    {
+      "lat": 40,
+      "lon": 74,
+      "name": "New York"
+    }
+  ],
+  "checkboxes": [],
+  "location": {
+    "lat": 40,
+    "lon": 74,
+    "name": "New York"
+  },
+  "enum_object": [
+    {
+      "name": "New York",
+      "lat": 40,
+      "lon": 74
+    },
+    {
+      "name": "Amsterdam",
+      "lat": 52,
+      "lon": 5
+    },
+    {
+      "name": "Hong Kong",
+      "lat": 22,
+      "lon": 114
+    }
+  ],
+  "enum_names": [
+    "New York",
+    "Amsterdam",
+    "Hong Kong"
+  ]
+}

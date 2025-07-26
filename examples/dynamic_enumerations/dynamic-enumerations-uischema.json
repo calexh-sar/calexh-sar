@@ -1,0 +1,16 @@
+{
+  "location": {
+    "ui:enumNames": {{ enum_names|tojson }}
+  },
+  "locationRadio": {
+    "ui:widget": "RadioWidget",
+    "ui:enumNames": {{ enum_names|tojson }}
+  },
+  "multiSelect": {
+    "ui:enumNames": {{ enum_names|tojson }}
+  },
+  "checkboxes": {
+    "ui:widget": "CheckboxesWidget",
+    "ui:enumNames": {{ enum_names|tojson }}
+  }
+}
