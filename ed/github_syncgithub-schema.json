@@ -1,0 +1,24 @@
+{
+  "type": "object",
+  "title": "GitHub Details",
+  "properties": {
+    "sync_process_obj": {
+      "title": "Process to sync",
+      "enum": {{ workspace_process_objs|tojson }},
+      "enumNames": {{ workspace_process_names|tojson }}
+    },
+    "sync_repo_obj": {
+      "title": "Repo to sync",
+      "enum": {{ repo_objs|tojson }},
+      "enumNames": {{ repo_names|tojson }}
+    },
+    "sync_direction": {
+      "type": "string",
+      "title": "Sync Direction",
+      "enum": [
+        "Down",
+        "Up"
+      ]
+    }
+  }
+}
