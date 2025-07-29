@@ -324,7 +324,9 @@ del(stock_no)</bpmn:script>
     <bpmn:sequenceFlow id="Flow_095oujx" sourceRef="Activity_0g2syyr" targetRef="EndEvent_1752591910180" />
     <bpmn:manualTask id="Activity_0g2syyr" name="Show Conclusion">
       <bpmn:extensionElements>
-        <spiffworkflow:instructionsForEndUser />
+        <spiffworkflow:instructionsForEndUser>A dropdown list is a common and useful UI form element.  In SpiffWorkflow, the react-jsonschema-forms (rjsf) React component allows for building a simple dropdown based on a single list or an enumeration based on a pair of lists.
+
+SpiffWorkflow allow you to make either of these two approaches dynamic with the introduction of Jinja into the rjsf code.  This allows the Process Architect to pull the element for these lists from an external source and format for use in the dropdown, both simple and paired.</spiffworkflow:instructionsForEndUser>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_0ts787a</bpmn:incoming>
       <bpmn:outgoing>Flow_095oujx</bpmn:outgoing>
