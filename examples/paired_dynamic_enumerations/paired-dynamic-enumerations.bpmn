@@ -326,7 +326,7 @@ del(stock_no)</bpmn:script>
       <bpmn:extensionElements>
         <spiffworkflow:instructionsForEndUser>A dropdown field is a common and useful UI form element.  In SpiffWorkflow, the react-jsonschema-forms (rjsf) React component allows for building a simple dropdown based on a single list or an enumeration based on a pair of lists.
 
-SpiffWorkflow provides the means to make either of these two approaches dynamic with the use of Jinja into the rjsf code.  This allows the Process Architect to pull the elements for these lists from an external source and format them for use in the dropdown field, both simple and paired.</spiffworkflow:instructionsForEndUser>
+SpiffWorkflow provides the means to make either of these two approaches dynamic by using Jinja to insert the list or lists into the rjsf code.  This allows the Process Builder to pull the elements for these lists from external sources and format them for use in the dropdown field, both simple and paired.</spiffworkflow:instructionsForEndUser>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_0ts787a</bpmn:incoming>
       <bpmn:outgoing>Flow_095oujx</bpmn:outgoing>
