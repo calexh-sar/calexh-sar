@@ -1,0 +1,367 @@
+{
+  "title": "Folders & Files",
+  "type": "object",
+  "properties": {
+    "folders_files": {
+      "title": "Folders",
+      "type": "object",
+      "properties": {
+        "level_0_folder": {
+          "title": "Level 0 Folder",
+          "type": "string",
+          "enum": [
+            "examples"
+          ]
+        },
+        "level_0_files": {
+          "title": "Level 0 Files",
+          "type": "object",
+          "properties": {
+            "select_level_0_files": {
+              "type": "array",
+              "title": "Select Level 0 files to pull down",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "LICENSE",
+                  "README.md"
+                ]
+              },
+              "uniqueItems": true
+            }
+          }
+        },
+        "level_1_folder": {},
+        "level_2_folder": {},
+        "level_3_folder": {}
+      },
+      "required": [
+        "level_0_folder"
+      ],
+      "dependencies": {
+        "level_0_folder": {
+          "oneOf": [
+            {
+              "properties": {
+                "level_0_folder": {
+                  "enum": [
+                    "examples"
+                  ]
+                },
+                "level_1_folder": {
+                  "title": "Level 1 Folder",
+                  "type": "string",
+                  "enum": [
+                    "0-1-minimal-example",
+                    "0-2-basic-example",
+                    "0-4-request-permissions",
+                    "1-basic-concepts",
+                    "2-in-depth",
+                    "3-use-cases"
+                  ]
+                }
+              },
+              "required": [
+                "level_1_folder"
+              ]
+            }
+          ]
+        },
+        "level_1_folder": {
+          "oneOf": [
+            {
+              "properties": {
+                "level_1_folder": {
+                  "enum": [
+                    "0-1-minimal-example"
+                  ]
+                },
+                "level_1_files": {
+                  "title": "Level 1 Files",
+                  "type": "object",
+                  "properties": {
+                    "select_level_1_files": {
+                      "type": "array",
+                      "title": "Select files to pull down",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "README.md",
+                          "hello-world.bpmn",
+                          "process_model.json",
+                          "test_hello-world.json"
+                        ]
+                      },
+                      "uniqueItems": true
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "properties": {
+                "level_1_folder": {
+                  "enum": [
+                    "0-2-basic-example"
+                  ]
+                },
+                "level_1_files": {
+                  "title": "Level 1 Files",
+                  "type": "object",
+                  "properties": {
+                    "select_level_1_files": {
+                      "type": "array",
+                      "title": "Select files to pull down",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "README.md",
+                          "norris-exampledata.json",
+                          "norris-schema.json",
+                          "norris-uischema.json",
+                          "norris_score.dmn",
+                          "process_model.json"
+                        ]
+                      },
+                      "uniqueItems": true
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "properties": {
+                "level_1_folder": {
+                  "enum": [
+                    "0-4-request-permissions"
+                  ]
+                },
+                "level_1_files": {
+                  "title": "Level 1 Files",
+                  "type": "object",
+                  "properties": {
+                    "select_level_1_files": {
+                      "type": "array",
+                      "title": "Select files to pull down",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "process_model.json",
+                          "request-a-playground-exampledata.json",
+                          "request-a-playground-schema.json",
+                          "request-a-playground-uischema.json",
+                          "signupCustomer.bpmn"
+                        ]
+                      },
+                      "uniqueItems": true
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "properties": {
+                "level_1_folder": {
+                  "enum": [
+                    "1-basic-concepts"
+                  ]
+                },
+                "level_2_folder": {
+                  "title": "Level 2 Folder",
+                  "type": "string",
+                  "enum": [
+                    "1-1-content",
+                    "1-2-forms",
+                    "1-3-scripts",
+                    "1-4-decisions",
+                    "1-6-roles",
+                    "1-7-reporting",
+                    "sending-an-email",
+                    "understanding-data-part-1"
+                  ]
+                }
+              }
+            },
+            {
+              "properties": {
+                "level_1_folder": {
+                  "enum": [
+                    "2-in-depth"
+                  ]
+                },
+                "level_2_folder": {
+                  "title": "Level 2 Folder",
+                  "type": "string",
+                  "enum": [
+                    "2-2-external-services",
+                    "2-3-sub-processes",
+                    "2-4-messages",
+                    "2-5-loops",
+                    "data-stores",
+                    "direct-api-calls",
+                    "events",
+                    "file-upload-and-download",
+                    "form-builder",
+                    "message-api",
+                    "parallel-user-task-data",
+                    "shared"
+                  ]
+                }
+              }
+            },
+            {
+              "properties": {
+                "level_1_folder": {
+                  "enum": [
+                    "3-use-cases"
+                  ]
+                },
+                "level_2_folder": {
+                  "title": "Level 2 Folder",
+                  "type": "string",
+                  "enum": [
+                    "ai-agent",
+                    "allow-updates-until-approved",
+                    "invitation-to-quote",
+                    "todo-list"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "level_2_folder": {
+          "oneOf": [
+            {
+              "properties": {
+                "level_2_folder": {
+                  "enum": [
+                    "1-1-content"
+                  ]
+                },
+                "level_2_files": {
+                  "title": "Level 2 Files",
+                  "type": "object",
+                  "properties": {
+                    "select_level_2_files": {
+                      "type": "array",
+                      "title": "Select files to pull down",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "README.md",
+                          "a-simple-form-exampledata.json",
+                          "a-simple-form-schema.json",
+                          "a-simple-form-uischema.json",
+                          "process_model.json",
+                          "show-content.bpmn",
+                          "test_show-content.json"
+                        ]
+                      },
+                      "uniqueItems": true
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "properties": {
+                "level_2_folder": {
+                  "enum": [
+                    "1-2-forms"
+                  ]
+                },
+                "level_2_files": {
+                  "title": "Level 2 Files",
+                  "type": "object",
+                  "properties": {
+                    "select_level_2_files": {
+                      "type": "array",
+                      "title": "Select files to pull down",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "README.md",
+                          "form_examples.bpmn",
+                          "process_model.json",
+                          "test-exampledata.json",
+                          "test-schema.json",
+                          "test-uischema.json",
+                          "test_form_examples.json"
+                        ]
+                      },
+                      "uniqueItems": true
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "properties": {
+                "level_2_folder": {
+                  "enum": [
+                    "1-3-scripts"
+                  ]
+                },
+                "level_2_files": {
+                  "title": "Level 2 Files",
+                  "type": "object",
+                  "properties": {
+                    "select_level_2_files": {
+                      "type": "array",
+                      "title": "Select files to pull down",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "process_model.json",
+                          "script-task.bpmn",
+                          "test_script-task.json",
+                          "trivia-quiz-exampledata.json",
+                          "trivia-quiz-schema.json",
+                          "trivia-quiz-uischema.json"
+                        ]
+                      },
+                      "uniqueItems": true
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "properties": {
+                "level_2_folder": {
+                  "enum": [
+                    "1-4-decisions"
+                  ]
+                },
+                "level_2_files": {
+                  "title": "Level 2 Files",
+                  "type": "object",
+                  "properties": {
+                    "select_level_2_files": {
+                      "type": "array",
+                      "title": "Select files to pull down",
+                      "items": {
+                        "type": "string",
+                        "enum": [
+                          "decision_example.bpmn",
+                          "pizza_price.dmn",
+                          "process_model.json",
+                          "select-a-pizza-exampledata.json",
+                          "select-a-pizza-schema.json",
+                          "select-a-pizza-uischema.json",
+                          "test_decision_example.json"
+                        ]
+                      },
+                      "uniqueItems": true
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

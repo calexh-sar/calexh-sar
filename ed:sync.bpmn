@@ -1,0 +1,572 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:spiffworkflow="http://spiffworkflow.org/bpmn/schema/1.0/core" id="Definitions_96f6665" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.0.0-dev">
+  <bpmn:process id="Process_1751907152649" isExecutable="true">
+    <bpmn:startEvent id="Event_1ecrebk">
+      <bpmn:outgoing>Flow_0g8j74a</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:scriptTask id="Activity_07ei7l1" name="Tmp Github Setup">
+      <bpmn:incoming>Flow_1oxmfjj</bpmn:incoming>
+      <bpmn:outgoing>Flow_1ag2gso</bpmn:outgoing>
+      <bpmn:script># Set process_id
+try:
+  process_id
+except NameError:
+  process_id = sync_process_obj["id"]
+
+config_base = resp_user_config["body"]["user_configuration"]["sync"]["github"]["repos"][0]
+
+owner = sync_repo_obj["owner"]
+repo = sync_repo_obj["repo"]
+src_branch = sync_repo_obj["ref"]
+dst_branch = sync_repo_obj["ref"]
+token = sync_repo_obj["token"]
+
+# TODO: don't hardcode, get from user filtered trees response
+files = [
+  "examples/2-in-depth/form-builder/jinja-enhancements/jinja-basics/jinja-basics.bpmn"
+]
+
+git_headers = {
+  "accept": "application/vnd.github+json", 
+  "Authorization": f"Bearer {token}"
+}
+
+git_graphql_url = "https://api.github.com/graphql"
+
+
+#git_contents_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}"
+
+</bpmn:script>
+    </bpmn:scriptTask>
+    <bpmn:sequenceFlow id="Flow_0g8j74a" sourceRef="Event_1ecrebk" targetRef="Activity_0shpsqc" />
+    <bpmn:endEvent id="Event_0rso24v">
+      <bpmn:incoming>Flow_08i3a46</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0g9g0ir" sourceRef="Activity_0obwshx" targetRef="Activity_0yh4x79" />
+    <bpmn:scriptTask id="Activity_0obwshx" name="Build Get Files Query">
+      <bpmn:incoming>Flow_1k6bsjh</bpmn:incoming>
+      <bpmn:outgoing>Flow_0g9g0ir</bpmn:outgoing>
+      <bpmn:script>def file_query(i, f):
+  return f"""
+    file{i}: object(expression: "{src_branch}:{f}") {{
+      ... on Blob {{
+        oid
+        text
+      }}
+    }}
+  """
+
+def files_query():
+  return "".join([file_query(i, f) for i, f in enumerate(files)])
+
+gql_req = {
+  "query": f"""
+query RepoFiles {{
+  repository(owner: "{owner}", name: "{repo}") {{
+    {files_query()}  
+  }}
+}}
+""",
+}</bpmn:script>
+    </bpmn:scriptTask>
+    <bpmn:sequenceFlow id="Flow_1xamnpr" sourceRef="Activity_0yh4x79" targetRef="Activity_0rmqg4c" />
+    <bpmn:serviceTask id="Activity_0yh4x79" name="Get Files">
+      <bpmn:extensionElements>
+        <spiffworkflow:serviceTaskOperator id="http/PostRequest" resultVariable="get_files_resp">
+          <spiffworkflow:parameters>
+            <spiffworkflow:parameter id="url" type="str" value="git_graphql_url" />
+            <spiffworkflow:parameter id="headers" type="any" value="git_headers" />
+            <spiffworkflow:parameter id="data" type="any" value="gql_req" />
+            <spiffworkflow:parameter id="basic_auth_username" type="str" />
+            <spiffworkflow:parameter id="basic_auth_password" type="str" />
+          </spiffworkflow:parameters>
+        </spiffworkflow:serviceTaskOperator>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0g9g0ir</bpmn:incoming>
+      <bpmn:outgoing>Flow_1xamnpr</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_05p8vx7" sourceRef="Activity_0rmqg4c" targetRef="Activity_13ynwf8" />
+    <bpmn:scriptTask id="Activity_0rmqg4c" name="Prep Files for Upsert">
+      <bpmn:incoming>Flow_1xamnpr</bpmn:incoming>
+      <bpmn:outgoing>Flow_05p8vx7</bpmn:outgoing>
+      <bpmn:script>def rtof(i, name):
+  rf = get_files_resp["body"]["data"]["repository"][f"file{i}"]
+  return {
+    "name": name,
+    "content": rf["text"],
+    "metadata": {
+      "remote_sha": rf["oid"],
+    }
+  }
+
+files_to_upsert = [rtof(i, f) for i, f in enumerate(files)]</bpmn:script>
+    </bpmn:scriptTask>
+    <bpmn:sequenceFlow id="Flow_1p06ysx" sourceRef="Activity_13ynwf8" targetRef="Gateway_1xp0xxk" />
+    <bpmn:serviceTask id="Activity_13ynwf8" name="Upsert Files">
+      <bpmn:extensionElements>
+        <spiffworkflow:serviceTaskOperator id="ed/UpsertFiles" resultVariable="upsert_files_resp">
+          <spiffworkflow:parameters>
+            <spiffworkflow:parameter id="process_id" type="str" value="process_id" />
+            <spiffworkflow:parameter id="files" type="any" value="files_to_upsert" />
+          </spiffworkflow:parameters>
+        </spiffworkflow:serviceTaskOperator>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_05p8vx7</bpmn:incoming>
+      <bpmn:outgoing>Flow_1p06ysx</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_1ag2gso" sourceRef="Activity_07ei7l1" targetRef="Gateway_1so9bb0" />
+    <bpmn:sequenceFlow id="Flow_0f2rlop" sourceRef="Activity_0l8coh1" targetRef="Activity_0lxmkt0" />
+    <bpmn:serviceTask id="Activity_0l8coh1" name="Get Local Files">
+      <bpmn:extensionElements>
+        <spiffworkflow:serviceTaskOperator id="ed/GetFiles" resultVariable="get_local_files_resp">
+          <spiffworkflow:parameters>
+            <spiffworkflow:parameter id="process_id" type="str" value="process_id" />
+            <spiffworkflow:parameter id="encoding" type="str" value="&#34;base64&#34;" />
+          </spiffworkflow:parameters>
+        </spiffworkflow:serviceTaskOperator>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1pc9fn1</bpmn:incoming>
+      <bpmn:outgoing>Flow_0f2rlop</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_0lrrvr8" sourceRef="Activity_0lu5rby" targetRef="Activity_0yij79n" />
+    <bpmn:scriptTask id="Activity_0lu5rby" name="Build Commit Mutation">
+      <bpmn:incoming>Flow_1a2enrt</bpmn:incoming>
+      <bpmn:outgoing>Flow_0lrrvr8</bpmn:outgoing>
+      <bpmn:script>additions = [{"path": f["name"], "contents": f["content"]} for f in get_local_files_resp["body"]["files"]]
+
+mutation = "mutation ($input: CreateCommitOnBranchInput!) {createCommitOnBranch(input: $input) { commit { url } }}"
+
+variables = {
+  "input": {
+    "branch": {
+      "repositoryNameWithOwner": f"{owner}/{repo}",
+      "branchName": dst_branch
+    },
+    "expectedHeadOid": old_oid,
+    "message": {"headline": commit_message},
+    "fileChanges": {
+      "additions": additions,
+    }
+  }
+}
+
+gql_req = {
+  "query": mutation,
+  "variables": variables,
+}</bpmn:script>
+    </bpmn:scriptTask>
+    <bpmn:serviceTask id="Activity_0yij79n" name="Push Files to Github">
+      <bpmn:extensionElements>
+        <spiffworkflow:serviceTaskOperator id="http/PostRequest" resultVariable="push_files_resp">
+          <spiffworkflow:parameters>
+            <spiffworkflow:parameter id="url" type="str" value="git_graphql_url" />
+            <spiffworkflow:parameter id="headers" type="any" value="git_headers" />
+            <spiffworkflow:parameter id="data" type="any" value="gql_req" />
+            <spiffworkflow:parameter id="basic_auth_username" type="str" />
+            <spiffworkflow:parameter id="basic_auth_password" type="str" />
+          </spiffworkflow:parameters>
+        </spiffworkflow:serviceTaskOperator>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0lrrvr8</bpmn:incoming>
+      <bpmn:outgoing>Flow_0tfummy</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Activity_0shpsqc" name="Get User Config">
+      <bpmn:extensionElements>
+        <spiffworkflow:serviceTaskOperator id="ed/UserConfiguration" resultVariable="resp_user_config">
+          <spiffworkflow:parameters />
+        </spiffworkflow:serviceTaskOperator>
+        <spiffworkflow:postScript># Build repo dictionary list
+repo_objs = []
+repo_names = []
+for ro in resp_user_config["body"]["user_configuration"]["sync"]["github"]["repos"]:
+  repo_objs.append(ro)
+  repo_names.append(ro["repo"])
+
+# Delete unneeded variables
+del(ro)</spiffworkflow:postScript>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0g8j74a</bpmn:incoming>
+      <bpmn:outgoing>Flow_13uhrvb</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:userTask id="Activity_1rk1cw4" name="Get GitHub Details">
+      <bpmn:extensionElements>
+        <spiffworkflow:properties>
+          <spiffworkflow:property name="formJsonSchemaFilename" value="github-schema.json" />
+          <spiffworkflow:property name="formUiSchemaFilename" value="github-uischema.json" />
+        </spiffworkflow:properties>
+        <spiffworkflow:instructionsForEndUser />
+        <spiffworkflow:preScript># If run from workspace menu, set default
+try:
+  process_id
+except NameError:
+  default_value = ""
+else:
+  default_value = [wpo for wpo in workspace_process_objs if wpo["id"] == process_id][0]</spiffworkflow:preScript>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_14lj6dx</bpmn:incoming>
+      <bpmn:outgoing>Flow_1oxmfjj</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="Gateway_1so9bb0" name="Sync Direction">
+      <bpmn:incoming>Flow_1ag2gso</bpmn:incoming>
+      <bpmn:outgoing>Flow_1pc9fn1</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1lpjlqs</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_1pc9fn1" name="Up" sourceRef="Gateway_1so9bb0" targetRef="Activity_0l8coh1">
+      <bpmn:conditionExpression>sync_direction == "Up"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_1lpjlqs" name="Down" sourceRef="Gateway_1so9bb0" targetRef="Activity_01p19th">
+      <bpmn:conditionExpression>sync_direction == "Down"</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:exclusiveGateway id="Gateway_1xp0xxk">
+      <bpmn:incoming>Flow_1p06ysx</bpmn:incoming>
+      <bpmn:incoming>Flow_0tfummy</bpmn:incoming>
+      <bpmn:outgoing>Flow_08i3a46</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_08i3a46" sourceRef="Gateway_1xp0xxk" targetRef="Event_0rso24v" />
+    <bpmn:sequenceFlow id="Flow_0tfummy" sourceRef="Activity_0yij79n" targetRef="Gateway_1xp0xxk" />
+    <bpmn:sequenceFlow id="Flow_13uhrvb" sourceRef="Activity_0shpsqc" targetRef="Activity_1l79sfh" />
+    <bpmn:sequenceFlow id="Flow_0efr3ey" sourceRef="Activity_0szetz9" targetRef="Activity_05q3f0k" />
+    <bpmn:serviceTask id="Activity_0szetz9" name="Get Head Refs">
+      <bpmn:extensionElements>
+        <spiffworkflow:serviceTaskOperator id="http/PostRequest" resultVariable="resp_get_head_refs">
+          <spiffworkflow:parameters>
+            <spiffworkflow:parameter id="url" type="str" value="git_graphql_url" />
+            <spiffworkflow:parameter id="headers" type="any" value="git_headers" />
+            <spiffworkflow:parameter id="data" type="any" value="gql_req" />
+            <spiffworkflow:parameter id="basic_auth_username" type="str" />
+            <spiffworkflow:parameter id="basic_auth_password" type="str" />
+          </spiffworkflow:parameters>
+        </spiffworkflow:serviceTaskOperator>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_0vlfcgl</bpmn:incoming>
+      <bpmn:outgoing>Flow_0efr3ey</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_0vlfcgl" sourceRef="Activity_0lxmkt0" targetRef="Activity_0szetz9" />
+    <bpmn:scriptTask id="Activity_0lxmkt0" name="Build Head Refs Query">
+      <bpmn:incoming>Flow_0f2rlop</bpmn:incoming>
+      <bpmn:outgoing>Flow_0vlfcgl</bpmn:outgoing>
+      <bpmn:script>query = """
+query($owner:String!, $repo:String!) {
+  repository(owner: $owner, name: $repo) {
+    id
+    refs(first: 100,  refPrefix:"refs/heads/") {
+      nodes {
+        name
+        target { oid }
+      }
+    }
+  }
+}"""
+
+variables = {
+  "owner": owner,
+  "repo": repo
+}
+
+gql_req = {
+  "query": query,
+  "variables": variables,
+}</bpmn:script>
+    </bpmn:scriptTask>
+    <bpmn:sequenceFlow id="Flow_1a2enrt" sourceRef="Activity_05q3f0k" targetRef="Activity_0lu5rby" />
+    <bpmn:scriptTask id="Activity_05q3f0k" name="Get Destination OID">
+      <bpmn:incoming>Flow_0efr3ey</bpmn:incoming>
+      <bpmn:outgoing>Flow_1a2enrt</bpmn:outgoing>
+      <bpmn:script># Get avaialable nodes
+available_nodes = resp_get_head_refs["body"]["data"]["repository"]["refs"]["nodes"]
+
+# Find node whose name matches the destination branch and get old OID
+for n in available_nodes:
+  if n["name"] == dst_branch:
+    old_oid = n["target"]["oid"]
+    break</bpmn:script>
+    </bpmn:scriptTask>
+    <bpmn:sequenceFlow id="Flow_14lj6dx" sourceRef="Activity_1l79sfh" targetRef="Activity_1rk1cw4" />
+    <bpmn:serviceTask id="Activity_1l79sfh" name="Get Workspace Processes">
+      <bpmn:extensionElements>
+        <spiffworkflow:serviceTaskOperator id="ed/WorkspaceProcesses" resultVariable="resp_workspace_processes">
+          <spiffworkflow:parameters />
+        </spiffworkflow:serviceTaskOperator>
+        <spiffworkflow:postScript># Build workspace processes enum
+workspace_process_objs = []
+workspace_process_names = []
+for wp in resp_workspace_processes["body"]["workspaceProcesses"]:
+  workspace_process_objs.append(wp)
+  workspace_process_names.append(wp["name"])
+
+# Delete unneeded variables
+del(wp)</spiffworkflow:postScript>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_13uhrvb</bpmn:incoming>
+      <bpmn:outgoing>Flow_14lj6dx</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_1oxmfjj" sourceRef="Activity_1rk1cw4" targetRef="Activity_07ei7l1" />
+    <bpmn:serviceTask id="Activity_01p19th" name="Get Remote Files">
+      <bpmn:extensionElements>
+        <spiffworkflow:serviceTaskOperator id="http/GetRequest" resultVariable="resp_get_remote_files">
+          <spiffworkflow:parameters>
+            <spiffworkflow:parameter id="url" type="str" value="remote_files_url" />
+            <spiffworkflow:parameter id="headers" type="any" value="git_headers" />
+            <spiffworkflow:parameter id="params" type="any" />
+            <spiffworkflow:parameter id="basic_auth_username" type="str" />
+            <spiffworkflow:parameter id="basic_auth_password" type="str" />
+          </spiffworkflow:parameters>
+        </spiffworkflow:serviceTaskOperator>
+        <spiffworkflow:preScript>#
+remote_files_url = "https://api.github.com/repos/" + owner + "/" + repo + "/git/trees/" + src_branch +"?recursive=true"</spiffworkflow:preScript>
+        <spiffworkflow:postScript># Extract files paths
+file_paths = [fen["path"] for fen in resp_get_remote_files["body"]["tree"] if fen["type"] == "blob"]
+
+# Delete unneeded variables
+del(resp_get_remote_files)</spiffworkflow:postScript>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1lpjlqs</bpmn:incoming>
+      <bpmn:outgoing>Flow_11klwu1</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:sequenceFlow id="Flow_1k6bsjh" sourceRef="Activity_11zw6r1" targetRef="Activity_0obwshx" />
+    <bpmn:sequenceFlow id="Flow_11klwu1" sourceRef="Activity_01p19th" targetRef="Activity_0y4t2hg" />
+    <bpmn:sequenceFlow id="Flow_05onb1o" sourceRef="Activity_0y4t2hg" targetRef="Activity_11zw6r1" />
+    <bpmn:scriptTask id="Activity_0y4t2hg" name="Build File Directories">
+      <bpmn:incoming>Flow_11klwu1</bpmn:incoming>
+      <bpmn:outgoing>Flow_05onb1o</bpmn:outgoing>
+      <bpmn:script>def process_file_paths(file_paths):
+    """
+    Process a list of file paths to extract:
+    1. Unique folder names at each level
+    2. Files that reside in the final folder of each path
+    
+    Args:
+        file_paths (list): List of file path strings
+        
+    Returns:
+        tuple: (folder_levels, final_files)
+            - folder_levels: dict with level as key and set of unique folder names as value
+            - final_files: dict with folder path as key and list of files as value
+    """
+    folder_levels = {}
+    final_files = {}
+    
+    for path in file_paths:
+        # Split the path by forward slash
+        parts = path.split('/')
+        
+        # Process folder levels
+        for level, folder_name in enumerate(parts[:-1]):  # Exclude the last part (filename)
+            if level not in folder_levels:
+                folder_levels[level] = set()
+            folder_levels[level].add(folder_name)
+        
+        # Process final files
+        if len(parts) &gt;= 2:
+            # Get the folder path (everything except the filename)
+            folder_path = '/'.join(parts[:-1])
+            filename = parts[-1]
+            
+            if folder_path not in final_files:
+                final_files[folder_path] = []
+            final_files[folder_path].append(filename)
+        
+    folder_levels = {k: list(v) for k, v in folder_levels.items()} 
+  
+    return folder_levels, final_files
+
+folder_levels, final_files = process_file_paths(file_paths)</bpmn:script>
+    </bpmn:scriptTask>
+    <bpmn:userTask id="Activity_11zw6r1" name="Select Files">
+      <bpmn:extensionElements>
+        <spiffworkflow:properties>
+          <spiffworkflow:property name="formJsonSchemaFilename" value="select-files-schema.json" />
+          <spiffworkflow:property name="formUiSchemaFilename" value="select-files-uischema.json" />
+        </spiffworkflow:properties>
+        <spiffworkflow:postScript># Extract files to pull
+files = []
+top_level = 2
+pre_url = ""
+for n in range(top_level+1):
+  key_to_check = "level_" + str(n) + "_files"
+  if folders_files.get(key_to_check) is not None:
+    select_key = "select_" + key_to_check
+    level_folder = "level_" + str(n) + "_folder"
+    pre_url = pre_url + folders_files[level_folder] + "/"
+    if len(folders_files[key_to_check][select_key]) &gt; 0:
+      for ftp in folders_files[key_to_check][select_key]:
+          files.append(pre_url + ftp)</spiffworkflow:postScript>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_05onb1o</bpmn:incoming>
+      <bpmn:outgoing>Flow_1k6bsjh</bpmn:outgoing>
+    </bpmn:userTask>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1751907152649">
+      <bpmndi:BPMNShape id="Event_1ecrebk_di" bpmnElement="Event_1ecrebk">
+        <dc:Bounds x="-658" y="-78" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_03npdda_di" bpmnElement="Activity_07ei7l1">
+        <dc:Bounds x="-110" y="-100" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0rso24v_di" bpmnElement="Event_0rso24v">
+        <dc:Bounds x="1252" y="-78" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1h8xw12_di" bpmnElement="Activity_0obwshx">
+        <dc:Bounds x="580" y="10" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_12h6bs5_di" bpmnElement="Activity_0yh4x79">
+        <dc:Bounds x="740" y="10" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0vbj4c6_di" bpmnElement="Activity_0rmqg4c">
+        <dc:Bounds x="880" y="10" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0ddvmsa_di" bpmnElement="Activity_13ynwf8">
+        <dc:Bounds x="1030" y="10" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1nntlbh_di" bpmnElement="Activity_0l8coh1">
+        <dc:Bounds x="130" y="-210" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0i9x6ql_di" bpmnElement="Activity_0lu5rby">
+        <dc:Bounds x="880" y="-210" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1811wn7_di" bpmnElement="Activity_0yij79n">
+        <dc:Bounds x="1030" y="-210" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1pkpxbr_di" bpmnElement="Activity_0shpsqc">
+        <dc:Bounds x="-580" y="-100" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0402o9q_di" bpmnElement="Activity_1rk1cw4">
+        <dc:Bounds x="-270" y="-100" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1so9bb0_di" bpmnElement="Gateway_1so9bb0" isMarkerVisible="true">
+        <dc:Bounds x="45" y="-85" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="104" y="-67" width="71" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1xp0xxk_di" bpmnElement="Gateway_1xp0xxk" isMarkerVisible="true">
+        <dc:Bounds x="1146" y="-85" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0ocq8p8_di" bpmnElement="Activity_0szetz9">
+        <dc:Bounds x="580" y="-210" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0c6kp6w_di" bpmnElement="Activity_0lxmkt0">
+        <dc:Bounds x="430" y="-210" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1bigsrw_di" bpmnElement="Activity_05q3f0k">
+        <dc:Bounds x="730" y="-210" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_13sm0t5_di" bpmnElement="Activity_1l79sfh">
+        <dc:Bounds x="-430" y="-100" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_13lnisq_di" bpmnElement="Activity_01p19th">
+        <dc:Bounds x="130" y="10" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0r8ieku_di" bpmnElement="Activity_0y4t2hg">
+        <dc:Bounds x="280" y="10" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0fcpylk_di" bpmnElement="Activity_11zw6r1">
+        <dc:Bounds x="430" y="10" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_0g8j74a_di" bpmnElement="Flow_0g8j74a">
+        <di:waypoint x="-622" y="-60" />
+        <di:waypoint x="-580" y="-60" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0g9g0ir_di" bpmnElement="Flow_0g9g0ir">
+        <di:waypoint x="680" y="50" />
+        <di:waypoint x="740" y="50" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1xamnpr_di" bpmnElement="Flow_1xamnpr">
+        <di:waypoint x="840" y="50" />
+        <di:waypoint x="880" y="50" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_05p8vx7_di" bpmnElement="Flow_05p8vx7">
+        <di:waypoint x="980" y="50" />
+        <di:waypoint x="1030" y="50" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1p06ysx_di" bpmnElement="Flow_1p06ysx">
+        <di:waypoint x="1130" y="50" />
+        <di:waypoint x="1171" y="50" />
+        <di:waypoint x="1171" y="-35" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1ag2gso_di" bpmnElement="Flow_1ag2gso">
+        <di:waypoint x="-10" y="-60" />
+        <di:waypoint x="45" y="-60" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0f2rlop_di" bpmnElement="Flow_0f2rlop">
+        <di:waypoint x="230" y="-170" />
+        <di:waypoint x="430" y="-170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0lrrvr8_di" bpmnElement="Flow_0lrrvr8">
+        <di:waypoint x="980" y="-170" />
+        <di:waypoint x="1030" y="-170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1pc9fn1_di" bpmnElement="Flow_1pc9fn1">
+        <di:waypoint x="70" y="-85" />
+        <di:waypoint x="70" y="-170" />
+        <di:waypoint x="130" y="-170" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="46" y="-139" width="15" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1lpjlqs_di" bpmnElement="Flow_1lpjlqs">
+        <di:waypoint x="70" y="-35" />
+        <di:waypoint x="70" y="50" />
+        <di:waypoint x="130" y="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="25" y="-6" width="29" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_08i3a46_di" bpmnElement="Flow_08i3a46">
+        <di:waypoint x="1196" y="-60" />
+        <di:waypoint x="1252" y="-60" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0tfummy_di" bpmnElement="Flow_0tfummy">
+        <di:waypoint x="1130" y="-170" />
+        <di:waypoint x="1171" y="-170" />
+        <di:waypoint x="1171" y="-85" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_13uhrvb_di" bpmnElement="Flow_13uhrvb">
+        <di:waypoint x="-480" y="-60" />
+        <di:waypoint x="-430" y="-60" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0efr3ey_di" bpmnElement="Flow_0efr3ey">
+        <di:waypoint x="680" y="-170" />
+        <di:waypoint x="730" y="-170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0vlfcgl_di" bpmnElement="Flow_0vlfcgl">
+        <di:waypoint x="530" y="-170" />
+        <di:waypoint x="580" y="-170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1a2enrt_di" bpmnElement="Flow_1a2enrt">
+        <di:waypoint x="830" y="-170" />
+        <di:waypoint x="880" y="-170" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_14lj6dx_di" bpmnElement="Flow_14lj6dx">
+        <di:waypoint x="-330" y="-60" />
+        <di:waypoint x="-270" y="-60" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1oxmfjj_di" bpmnElement="Flow_1oxmfjj">
+        <di:waypoint x="-170" y="-60" />
+        <di:waypoint x="-110" y="-60" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1k6bsjh_di" bpmnElement="Flow_1k6bsjh">
+        <di:waypoint x="530" y="50" />
+        <di:waypoint x="580" y="50" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_11klwu1_di" bpmnElement="Flow_11klwu1">
+        <di:waypoint x="230" y="50" />
+        <di:waypoint x="280" y="50" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_05onb1o_di" bpmnElement="Flow_05onb1o">
+        <di:waypoint x="380" y="50" />
+        <di:waypoint x="430" y="50" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
