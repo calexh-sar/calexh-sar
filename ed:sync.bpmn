@@ -312,7 +312,7 @@ del(wp)</spiffworkflow:postScript>
             <spiffworkflow:parameter id="basic_auth_password" type="str" />
           </spiffworkflow:parameters>
         </spiffworkflow:serviceTaskOperator>
-        <spiffworkflow:preScript>#
+        <spiffworkflow:preScript># Build remote files url
 remote_files_url = "https://api.github.com/repos/" + owner + "/" + repo + "/git/trees/" + src_branch +"?recursive=true"</spiffworkflow:preScript>
         <spiffworkflow:postScript># Extract files paths
 file_paths = [fen["path"] for fen in resp_get_remote_files["body"]["tree"] if fen["type"] == "blob"]
@@ -324,12 +324,27 @@ del(resp_get_remote_files)</spiffworkflow:postScript>
       <bpmn:outgoing>Flow_11klwu1</bpmn:outgoing>
     </bpmn:serviceTask>
     <bpmn:sequenceFlow id="Flow_1k6bsjh" sourceRef="Activity_0uyd0cy" targetRef="Activity_0obwshx" />
-    <bpmn:sequenceFlow id="Flow_11klwu1" sourceRef="Activity_01p19th" targetRef="Activity_0y4t2hg" />
-    <bpmn:sequenceFlow id="Flow_05onb1o" sourceRef="Activity_0y4t2hg" targetRef="Activity_0uyd0cy" />
-    <bpmn:scriptTask id="Activity_0y4t2hg" name="Build File Directories">
-      <bpmn:incoming>Flow_11klwu1</bpmn:incoming>
-      <bpmn:outgoing>Flow_05onb1o</bpmn:outgoing>
-      <bpmn:script>def process_file_paths(file_paths):
+    <bpmn:sequenceFlow id="Flow_11klwu1" sourceRef="Activity_01p19th" targetRef="Activity_0uyd0cy" />
+    <bpmn:userTask id="Activity_11zw6r1" name="Select Files">
+      <bpmn:extensionElements>
+        <spiffworkflow:properties>
+          <spiffworkflow:property name="formJsonSchemaFilename" value="select-files-schema.json" />
+          <spiffworkflow:property name="formUiSchemaFilename" value="select-files-uischema.json" />
+        </spiffworkflow:properties>
+        <spiffworkflow:postScript># Extract files to pull
+files = []
+top_level = 2
+pre_url = ""
+for n in range(top_level+1):
+  key_to_check = "level_" + str(n) + "_files"
+  if folders_files.get(key_to_check) is not None:
+    select_key = "select_" + key_to_check
+    level_folder = "level_" + str(n) + "_folder"
+    pre_url = pre_url + folders_files[level_folder] + "/"
+    if len(folders_files[key_to_check][select_key]) &gt; 0:
+      for ftp in folders_files[key_to_check][select_key]:
+          files.append(pre_url + ftp)</spiffworkflow:postScript>
+        <spiffworkflow:preScript>def process_file_paths(file_paths):
     """
     Process a list of file paths to extract:
     1. Unique folder names at each level
@@ -379,49 +394,80 @@ for key, value in final_files.items():
     if "process_model.json" in value:
         value.remove("process_model.json")
     if len(value) &gt; 0:
-        enum_list.append(key)</bpmn:script>
-    </bpmn:scriptTask>
-    <bpmn:userTask id="Activity_11zw6r1" name="Select Files">
-      <bpmn:extensionElements>
-        <spiffworkflow:properties>
-          <spiffworkflow:property name="formJsonSchemaFilename" value="select-files-schema.json" />
-          <spiffworkflow:property name="formUiSchemaFilename" value="select-files-uischema.json" />
-        </spiffworkflow:properties>
-        <spiffworkflow:postScript># Extract files to pull
-files = []
-top_level = 2
-pre_url = ""
-for n in range(top_level+1):
-  key_to_check = "level_" + str(n) + "_files"
-  if folders_files.get(key_to_check) is not None:
-    select_key = "select_" + key_to_check
-    level_folder = "level_" + str(n) + "_folder"
-    pre_url = pre_url + folders_files[level_folder] + "/"
-    if len(folders_files[key_to_check][select_key]) &gt; 0:
-      for ftp in folders_files[key_to_check][select_key]:
-          files.append(pre_url + ftp)</spiffworkflow:postScript>
+        enum_list.append(key)</spiffworkflow:preScript>
       </bpmn:extensionElements>
     </bpmn:userTask>
-    <bpmn:userTask id="Activity_0uyd0cy" name="Select Files">
+    <bpmn:userTask id="Activity_0uyd0cy" name="Select Location">
       <bpmn:extensionElements>
         <spiffworkflow:properties>
           <spiffworkflow:property name="formJsonSchemaFilename" value="select-location-files-schema.json" />
           <spiffworkflow:property name="formUiSchemaFilename" value="select-location-files-uischema.json" />
         </spiffworkflow:properties>
-        <spiffworkflow:postScript>#
-just_files = final_files[select_location]
-if "README.md" in just_files:
-    just_files.remove("README.md")
-if "process_model.json" in files:
-    just_files.remove("process_model.json")
+        <spiffworkflow:postScript># Get files for selected location
+just_location_files = final_files[select_location]
 
+# Remove and README.md and process_model.json files
+if "README.md" in just_location_files:
+    just_location_files.remove("README.md")
+if "process_model.json" in files:
+    just_location_files.remove("process_model.json")
+
+# Add path to file name
 files = []
-for jf in just_files:
-  files.append(select_location + "/" + jf)</spiffworkflow:postScript>
+for jf in just_location_files:
+  files.append(select_location + "/" + jf)
+
+# Delete unneeded variables
+del(just_location_files)
+del(final_files)
+del(jf)
+</spiffworkflow:postScript>
+        <spiffworkflow:preScript># Process a list of file paths to extract files that 
+# reside in the final folder of each path
+
+final_files = {}
+    
+for path in file_paths:
+  # Split the path by forward slash
+  parts = path.split('/')
+  
+  # Process final files
+  if len(parts) &gt;= 2:
+    # Get the folder path (everything except the filename)
+    folder_path = '/'.join(parts[:-1])
+    filename = parts[-1]
+    
+    if folder_path not in final_files:
+      final_files[folder_path] = []
+      
+    final_files[folder_path].append(filename)
+
+# Build enum list of paths for Select Location User Task
+enum_list = []
+
+# Only include paths which have files remaining after
+# removing Arena system files README.md and process_model.json
+for key, value in final_files.items():
+    if "README.md" in value:
+        value.remove("README.md")
+    if "process_model.json" in value:
+        value.remove("process_model.json")
+    if len(value) &gt; 0:
+        enum_list.append(key)
+
+# Delete unneeded variables
+del(path)
+del(parts)
+del(folder_path)
+del(filename)</spiffworkflow:preScript>
       </bpmn:extensionElements>
-      <bpmn:incoming>Flow_05onb1o</bpmn:incoming>
+      <bpmn:incoming>Flow_11klwu1</bpmn:incoming>
       <bpmn:outgoing>Flow_1k6bsjh</bpmn:outgoing>
     </bpmn:userTask>
+    <bpmn:textAnnotation id="TextAnnotation_0bbn5xj">
+      <bpmn:text>Keep this for a while in case selecting locations proves cumbersome</bpmn:text>
+    </bpmn:textAnnotation>
+    <bpmn:association id="Association_0uoxbf9" associationDirection="None" sourceRef="Activity_11zw6r1" targetRef="TextAnnotation_0bbn5xj" />
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1751907152649">
@@ -432,33 +478,8 @@ for jf in just_files:
         <dc:Bounds x="-110" y="-100" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Event_0rso24v_di" bpmnElement="Event_0rso24v">
-        <dc:Bounds x="1252" y="-78" width="36" height="36" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1h8xw12_di" bpmnElement="Activity_0obwshx">
-        <dc:Bounds x="580" y="10" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_12h6bs5_di" bpmnElement="Activity_0yh4x79">
-        <dc:Bounds x="740" y="10" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0vbj4c6_di" bpmnElement="Activity_0rmqg4c">
-        <dc:Bounds x="880" y="10" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0ddvmsa_di" bpmnElement="Activity_13ynwf8">
-        <dc:Bounds x="1030" y="10" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1nntlbh_di" bpmnElement="Activity_0l8coh1">
         <dc:Bounds x="130" y="-210" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0i9x6ql_di" bpmnElement="Activity_0lu5rby">
-        <dc:Bounds x="880" y="-210" width="100" height="80" />
-        <bpmndi:BPMNLabel />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1811wn7_di" bpmnElement="Activity_0yij79n">
-        <dc:Bounds x="1030" y="-210" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1pkpxbr_di" bpmnElement="Activity_0shpsqc">
@@ -475,54 +496,80 @@ for jf in just_files:
           <dc:Bounds x="104" y="-67" width="71" height="14" />
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_1xp0xxk_di" bpmnElement="Gateway_1xp0xxk" isMarkerVisible="true">
-        <dc:Bounds x="1146" y="-85" width="50" height="50" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0ocq8p8_di" bpmnElement="Activity_0szetz9">
-        <dc:Bounds x="580" y="-210" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0c6kp6w_di" bpmnElement="Activity_0lxmkt0">
-        <dc:Bounds x="430" y="-210" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_1bigsrw_di" bpmnElement="Activity_05q3f0k">
-        <dc:Bounds x="730" y="-210" width="100" height="80" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_13sm0t5_di" bpmnElement="Activity_1l79sfh">
         <dc:Bounds x="-430" y="-100" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_13lnisq_di" bpmnElement="Activity_01p19th">
         <dc:Bounds x="130" y="10" width="100" height="80" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Activity_0r8ieku_di" bpmnElement="Activity_0y4t2hg">
-        <dc:Bounds x="280" y="10" width="100" height="80" />
+      <bpmndi:BPMNShape id="Event_0rso24v_di" bpmnElement="Event_0rso24v">
+        <dc:Bounds x="1112" y="-78" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1h8xw12_di" bpmnElement="Activity_0obwshx">
+        <dc:Bounds x="440" y="10" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0vbj4c6_di" bpmnElement="Activity_0rmqg4c">
+        <dc:Bounds x="740" y="10" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0ddvmsa_di" bpmnElement="Activity_13ynwf8">
+        <dc:Bounds x="890" y="10" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0i9x6ql_di" bpmnElement="Activity_0lu5rby">
+        <dc:Bounds x="740" y="-210" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1811wn7_di" bpmnElement="Activity_0yij79n">
+        <dc:Bounds x="890" y="-210" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1xp0xxk_di" bpmnElement="Gateway_1xp0xxk" isMarkerVisible="true">
+        <dc:Bounds x="1006" y="-85" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0ocq8p8_di" bpmnElement="Activity_0szetz9">
+        <dc:Bounds x="440" y="-210" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0c6kp6w_di" bpmnElement="Activity_0lxmkt0">
+        <dc:Bounds x="290" y="-210" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1bigsrw_di" bpmnElement="Activity_05q3f0k">
+        <dc:Bounds x="590" y="-210" width="100" height="80" />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0fcpylk_di" bpmnElement="Activity_11zw6r1">
-        <dc:Bounds x="430" y="140" width="100" height="80" />
+        <dc:Bounds x="290" y="140" width="100" height="80" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_1h4rcbl_di" bpmnElement="Activity_0uyd0cy">
-        <dc:Bounds x="430" y="10" width="100" height="80" />
+        <dc:Bounds x="290" y="10" width="100" height="80" />
+        <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_12h6bs5_di" bpmnElement="Activity_0yh4x79">
+        <dc:Bounds x="590" y="10" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Association_0uoxbf9_di" bpmnElement="Association_0uoxbf9">
+        <di:waypoint x="390" y="169" />
+        <di:waypoint x="440" y="157" />
+      </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0g8j74a_di" bpmnElement="Flow_0g8j74a">
         <di:waypoint x="-622" y="-60" />
         <di:waypoint x="-580" y="-60" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0g9g0ir_di" bpmnElement="Flow_0g9g0ir">
-        <di:waypoint x="680" y="50" />
-        <di:waypoint x="740" y="50" />
+        <di:waypoint x="540" y="50" />
+        <di:waypoint x="590" y="50" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1xamnpr_di" bpmnElement="Flow_1xamnpr">
-        <di:waypoint x="840" y="50" />
-        <di:waypoint x="880" y="50" />
+        <di:waypoint x="690" y="50" />
+        <di:waypoint x="740" y="50" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_05p8vx7_di" bpmnElement="Flow_05p8vx7">
-        <di:waypoint x="980" y="50" />
-        <di:waypoint x="1030" y="50" />
+        <di:waypoint x="840" y="50" />
+        <di:waypoint x="890" y="50" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1p06ysx_di" bpmnElement="Flow_1p06ysx">
-        <di:waypoint x="1130" y="50" />
-        <di:waypoint x="1171" y="50" />
-        <di:waypoint x="1171" y="-35" />
+        <di:waypoint x="990" y="50" />
+        <di:waypoint x="1031" y="50" />
+        <di:waypoint x="1031" y="-35" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1ag2gso_di" bpmnElement="Flow_1ag2gso">
         <di:waypoint x="-10" y="-60" />
@@ -530,11 +577,11 @@ for jf in just_files:
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0f2rlop_di" bpmnElement="Flow_0f2rlop">
         <di:waypoint x="230" y="-170" />
-        <di:waypoint x="430" y="-170" />
+        <di:waypoint x="290" y="-170" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0lrrvr8_di" bpmnElement="Flow_0lrrvr8">
-        <di:waypoint x="980" y="-170" />
-        <di:waypoint x="1030" y="-170" />
+        <di:waypoint x="840" y="-170" />
+        <di:waypoint x="890" y="-170" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1pc9fn1_di" bpmnElement="Flow_1pc9fn1">
         <di:waypoint x="70" y="-85" />
@@ -553,29 +600,29 @@ for jf in just_files:
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_08i3a46_di" bpmnElement="Flow_08i3a46">
-        <di:waypoint x="1196" y="-60" />
-        <di:waypoint x="1252" y="-60" />
+        <di:waypoint x="1056" y="-60" />
+        <di:waypoint x="1112" y="-60" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0tfummy_di" bpmnElement="Flow_0tfummy">
-        <di:waypoint x="1130" y="-170" />
-        <di:waypoint x="1171" y="-170" />
-        <di:waypoint x="1171" y="-85" />
+        <di:waypoint x="990" y="-170" />
+        <di:waypoint x="1031" y="-170" />
+        <di:waypoint x="1031" y="-85" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_13uhrvb_di" bpmnElement="Flow_13uhrvb">
         <di:waypoint x="-480" y="-60" />
         <di:waypoint x="-430" y="-60" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0efr3ey_di" bpmnElement="Flow_0efr3ey">
-        <di:waypoint x="680" y="-170" />
-        <di:waypoint x="730" y="-170" />
+        <di:waypoint x="540" y="-170" />
+        <di:waypoint x="590" y="-170" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_0vlfcgl_di" bpmnElement="Flow_0vlfcgl">
-        <di:waypoint x="530" y="-170" />
-        <di:waypoint x="580" y="-170" />
+        <di:waypoint x="390" y="-170" />
+        <di:waypoint x="440" y="-170" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1a2enrt_di" bpmnElement="Flow_1a2enrt">
-        <di:waypoint x="830" y="-170" />
-        <di:waypoint x="880" y="-170" />
+        <di:waypoint x="690" y="-170" />
+        <di:waypoint x="740" y="-170" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_14lj6dx_di" bpmnElement="Flow_14lj6dx">
         <di:waypoint x="-330" y="-60" />
@@ -586,17 +633,17 @@ for jf in just_files:
         <di:waypoint x="-110" y="-60" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_1k6bsjh_di" bpmnElement="Flow_1k6bsjh">
-        <di:waypoint x="530" y="50" />
-        <di:waypoint x="580" y="50" />
+        <di:waypoint x="390" y="50" />
+        <di:waypoint x="440" y="50" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_11klwu1_di" bpmnElement="Flow_11klwu1">
         <di:waypoint x="230" y="50" />
-        <di:waypoint x="280" y="50" />
+        <di:waypoint x="290" y="50" />
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_05onb1o_di" bpmnElement="Flow_05onb1o">
-        <di:waypoint x="380" y="50" />
-        <di:waypoint x="430" y="50" />
-      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="TextAnnotation_0bbn5xj_di" bpmnElement="TextAnnotation_0bbn5xj">
+        <dc:Bounds x="440" y="131" width="99.99573669849931" height="98.22646657571623" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
 </bpmn:definitions>
