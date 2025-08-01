@@ -1,0 +1,11 @@
+{ 
+  "title": "Select Files to pull down",
+  "type": "object",
+  "properties": {
+    "select_location": {
+      "title": "Select location of files",
+      "type": "string",
+      "enum": {{ enum_list|tojson }}
+    }
+  }
+}
