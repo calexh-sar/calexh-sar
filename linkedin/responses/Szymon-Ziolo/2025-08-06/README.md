@@ -1,0 +1,1 @@
+[Link to post](https://www.linkedin.com/posts/szymon-ziolo-redpill_tyle-tu-guru-bpmn-owych-szanowanych-i-do%C5%9Bwiadczonych-activity-7358435183693348866-dWMC?utm_source=share&utm_medium=member_desktop&rcm=ACoAAACeH4UBMoWNLYd_OgGQGZZJ9y3ci3K-bxs)
