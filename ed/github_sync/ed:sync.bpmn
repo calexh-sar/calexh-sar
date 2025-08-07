@@ -131,7 +131,7 @@ files_to_upsert = [rtof(i, f) for i, f in enumerate(files)]</bpmn:script>
     <bpmn:scriptTask id="Activity_0lu5rby" name="Build Commit Mutation">
       <bpmn:incoming>Flow_1a2enrt</bpmn:incoming>
       <bpmn:outgoing>Flow_0lrrvr8</bpmn:outgoing>
-      <bpmn:script>additions = [{"path": sync_path + f["name"], "contents": f["content"]} for f in get_local_files_resp["body"]["files"]]
+      <bpmn:script>additions = [{"path": f["name"], "contents": f["content"]} for f in get_local_files_resp["body"]["files"]]
 
 mutation = "mutation ($input: CreateCommitOnBranchInput!) {createCommitOnBranch(input: $input) { commit { url } }}"
 
