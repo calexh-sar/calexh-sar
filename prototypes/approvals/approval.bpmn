@@ -51,7 +51,7 @@
     </bpmn:exclusiveGateway>
     <bpmn:sequenceFlow id="Flow_1ogjs9z" sourceRef="Gateway_0lg54xw" targetRef="Gateway_1aghzfh" />
     <bpmn:sequenceFlow id="Flow_1128nl1" sourceRef="Gateway_0z5dwr1" targetRef="Activity_1tf4z2e">
-      <bpmn:conditionExpression>is_listed_trades</bpmn:conditionExpression>
+      <bpmn:conditionExpression>is_listed_trade</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:userTask id="Activity_10oofm8" name="Approve Listed Trade">
       <bpmn:extensionElements>
@@ -78,33 +78,32 @@ Notes: {{ lt["notes"] }}
     </bpmn:userTask>
     <bpmn:userTask id="Activity_0frkzn5" name="Approve Unlisted Trade">
       <bpmn:extensionElements>
-        <spiffworkflow:instructionsForEndUser>Trade Plan: {{ name }}  
-Total Estimated Value: {{ totalEstimatedValue }}  
-Plan Status: {{ planStatus }}  
+        <spiffworkflow:instructionsForEndUser>Trade Plan: {{ unlisted_trade["name"] }}  
+Total Estimated Value: {{ unlisted_trade["totalEstimatedValue"] }}  
+Plan Status: {{ unlisted_trade["planStatus"] }}  
 ***  
-{% for ult in unlisted_trades %}
-{{ ult["symbol"] }}&amp;nbsp;&amp;nbsp;&amp;nbsp;{{ ult["asset_name"] }}&amp;nbsp;&amp;nbsp;&amp;nbsp;LISTED-{{ ult["listingStatus"] }}  
+
+{{ unlisted_trade["symbol"] }}&amp;nbsp;&amp;nbsp;&amp;nbsp;{{ unlisted_trade["asset_name"] }}&amp;nbsp;&amp;nbsp;&amp;nbsp;LISTED-{{ unlisted_trade["listingStatus"] }}  
 | Amount | Order Type | Status | Currency |  
 | --- | --- | --- | --- |  
-| {{ ult["targetPrice"] }} | {{ ult["orderType"] }} | {{ ult["status"] }} | {{ ult["currency"] }} |  
+| {{ unlisted_trade["targetPrice"] }} | {{ unlisted_trade["orderType"] }} | {{ unlisted_trade["status"] }} | {{ unlisted_trade["currency"] }} |  
 
-Notes: {{ ult["notes"] }}  
-***
-{% endfor %}</spiffworkflow:instructionsForEndUser>
+Notes: {{ unlisted_trade["notes"] }}  </spiffworkflow:instructionsForEndUser>
         <spiffworkflow:properties>
           <spiffworkflow:property name="formJsonSchemaFilename" value="approve-trade-schema.json" />
-          <spiffworkflow:property name="formUiSchemaFilename" value="" />
+          <spiffworkflow:property name="formUiSchemaFilename" value="approve-trade-uischema.json" />
         </spiffworkflow:properties>
+        <spiffworkflow:postScript>unlisted_trade_outcome = {"approval_outcome": approval_outcome}</spiffworkflow:postScript>
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_1qgr2fx</bpmn:incoming>
       <bpmn:outgoing>Flow_1kku8kx</bpmn:outgoing>
     </bpmn:userTask>
     <bpmn:sequenceFlow id="Flow_1g5pz87" sourceRef="Gateway_1l2wyum" targetRef="Activity_10oofm8">
-      <bpmn:conditionExpression>is_listed_trades</bpmn:conditionExpression>
+      <bpmn:conditionExpression>is_listed_trade</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="Flow_0mbjz4h" sourceRef="Activity_10oofm8" targetRef="Gateway_0lg54xw" />
     <bpmn:sequenceFlow id="Flow_1qgr2fx" sourceRef="Gateway_1l2wyum" targetRef="Activity_0frkzn5">
-      <bpmn:conditionExpression>is_unlisted_trades</bpmn:conditionExpression>
+      <bpmn:conditionExpression>is_unlisted_trade</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="Flow_1kku8kx" sourceRef="Activity_0frkzn5" targetRef="Gateway_0lg54xw" />
     <bpmn:sequenceFlow id="Flow_0v92u99" sourceRef="Gateway_1pw6poh" targetRef="Gateway_1aghzfh" />
@@ -118,7 +117,7 @@ Notes: {{ ult["notes"] }}
       <bpmn:outgoing>Flow_0a3cww5</bpmn:outgoing>
     </bpmn:userTask>
     <bpmn:sequenceFlow id="Flow_1dwbrkg" sourceRef="Gateway_0z5dwr1" targetRef="Activity_1auuu0e">
-      <bpmn:conditionExpression>is_unlisted_trades</bpmn:conditionExpression>
+      <bpmn:conditionExpression>is_unlisted_trade</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:userTask id="Activity_1auuu0e" name="Approve Unlisted Trade">
       <bpmn:extensionElements>
