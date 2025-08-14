@@ -1,8 +1,0 @@
-{
-  "title": "Select file location",
-  "type": "object",
-  "files": {
-    "type": "string",
-    "enum":
-  }
-}
