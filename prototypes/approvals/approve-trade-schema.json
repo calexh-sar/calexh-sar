@@ -1,0 +1,14 @@
+{
+  "type": "object",
+  "title": "Approve Listed Trade",
+  "properties": {
+    "approval_outcome": {
+      "title": "Approval Outcome",
+      "type": "string",
+      "enum": [
+        "Approved",
+        "Rejected"
+      ]
+    }
+  }
+}

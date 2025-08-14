@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_96f6665" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.0.0-dev">
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:spiffworkflow="http://spiffworkflow.org/bpmn/schema/1.0/core" id="Definitions_96f6665" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.0.0-dev">
   <bpmn:collaboration id="Collaboration_0blz2ao">
     <bpmn:participant id="Participant_0smsxk3" name="Approvals" processRef="Approval" />
   </bpmn:collaboration>
@@ -13,15 +13,15 @@
       </bpmn:lane>
       <bpmn:lane id="Lane_1x8xt8w" name="Trace-approvers">
         <bpmn:flowNodeRef>Activity_10oofm8</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Activity_0frkzn5</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Gateway_1l2wyum</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Gateway_0lg54xw</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Activity_0frkzn5</bpmn:flowNodeRef>
       </bpmn:lane>
       <bpmn:lane id="Lane_1t4fifi" name="HighValueTrade-Approvers">
-        <bpmn:flowNodeRef>Gateway_0z5dwr1</bpmn:flowNodeRef>
-        <bpmn:flowNodeRef>Gateway_1pw6poh</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Activity_1tf4z2e</bpmn:flowNodeRef>
         <bpmn:flowNodeRef>Activity_1auuu0e</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_0z5dwr1</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Gateway_1pw6poh</bpmn:flowNodeRef>
       </bpmn:lane>
     </bpmn:laneSet>
     <bpmn:sequenceFlow id="Flow1_1754934525701" sourceRef="StartEvent_1754934525701" targetRef="Gateway_1ydvsc5" />
@@ -30,11 +30,9 @@
     </bpmn:startEvent>
     <bpmn:exclusiveGateway id="Gateway_1ydvsc5" name="Approval Type">
       <bpmn:incoming>Flow1_1754934525701</bpmn:incoming>
-      <bpmn:outgoing>Flow_0er1t58</bpmn:outgoing>
       <bpmn:outgoing>Flow_1h8hgmi</bpmn:outgoing>
       <bpmn:outgoing>Flow_07s7jpr</bpmn:outgoing>
     </bpmn:exclusiveGateway>
-    <bpmn:sequenceFlow id="Flow_0er1t58" sourceRef="Gateway_1ydvsc5" targetRef="Gateway_1aghzfh" />
     <bpmn:sequenceFlow id="Flow_08zyecc" sourceRef="Gateway_1aghzfh" targetRef="EndEvent_1754934525701" />
     <bpmn:sequenceFlow id="Flow_1h8hgmi" name="Regular Approval" sourceRef="Gateway_1ydvsc5" targetRef="Gateway_1l2wyum">
       <bpmn:conditionExpression>not(is_high_value_approval)</bpmn:conditionExpression>
@@ -47,7 +45,6 @@
       <bpmn:incoming>Flow_08zyecc</bpmn:incoming>
     </bpmn:endEvent>
     <bpmn:exclusiveGateway id="Gateway_1aghzfh">
-      <bpmn:incoming>Flow_0er1t58</bpmn:incoming>
       <bpmn:incoming>Flow_1ogjs9z</bpmn:incoming>
       <bpmn:incoming>Flow_0v92u99</bpmn:incoming>
       <bpmn:outgoing>Flow_08zyecc</bpmn:outgoing>
@@ -56,26 +53,49 @@
     <bpmn:sequenceFlow id="Flow_1128nl1" sourceRef="Gateway_0z5dwr1" targetRef="Activity_1tf4z2e">
       <bpmn:conditionExpression>is_listed_trades</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:inclusiveGateway id="Gateway_0z5dwr1">
-      <bpmn:incoming>Flow_07s7jpr</bpmn:incoming>
-      <bpmn:outgoing>Flow_1128nl1</bpmn:outgoing>
-      <bpmn:outgoing>Flow_1dwbrkg</bpmn:outgoing>
-    </bpmn:inclusiveGateway>
     <bpmn:userTask id="Activity_10oofm8" name="Approve Listed Trade">
+      <bpmn:extensionElements>
+        <spiffworkflow:properties>
+          <spiffworkflow:property name="formJsonSchemaFilename" value="approve-trade-schema.json" />
+          <spiffworkflow:property name="formUiSchemaFilename" value="approve-trade-uischema.json" />
+        </spiffworkflow:properties>
+        <spiffworkflow:instructionsForEndUser>Trade Plan: {{ name }}  
+Total Estimated Value: {{ totalEstimatedValue }}  
+Plan Status: {{ planStatus }}  
+***  
+{% for lt in listed_trades %}
+{{ lt["symbol"] }}&amp;nbsp;&amp;nbsp;&amp;nbsp;{{ lt["asset_name"] }}&amp;nbsp;&amp;nbsp;&amp;nbsp;LISTED-{{ lt["listingStatus"] }}  
+| Quantity | Target Price | Order Type | Exchange |  
+| --- | --- | --- | --- |  
+| {{ lt["quantity"] }} | {{ lt["targetPrice"] }} | {{ lt["orderType"] }} | {{ lt["exchange"] }} |  
+
+Notes: {{ lt["notes"] }}  
+***
+{% endfor %}</spiffworkflow:instructionsForEndUser>
+      </bpmn:extensionElements>
       <bpmn:incoming>Flow_1g5pz87</bpmn:incoming>
       <bpmn:outgoing>Flow_0mbjz4h</bpmn:outgoing>
     </bpmn:userTask>
-    <bpmn:inclusiveGateway id="Gateway_1l2wyum">
-      <bpmn:incoming>Flow_1h8hgmi</bpmn:incoming>
-      <bpmn:outgoing>Flow_1g5pz87</bpmn:outgoing>
-      <bpmn:outgoing>Flow_1qgr2fx</bpmn:outgoing>
-    </bpmn:inclusiveGateway>
-    <bpmn:inclusiveGateway id="Gateway_0lg54xw">
-      <bpmn:incoming>Flow_0mbjz4h</bpmn:incoming>
-      <bpmn:incoming>Flow_1kku8kx</bpmn:incoming>
-      <bpmn:outgoing>Flow_1ogjs9z</bpmn:outgoing>
-    </bpmn:inclusiveGateway>
     <bpmn:userTask id="Activity_0frkzn5" name="Approve Unlisted Trade">
+      <bpmn:extensionElements>
+        <spiffworkflow:instructionsForEndUser>Trade Plan: {{ name }}  
+Total Estimated Value: {{ totalEstimatedValue }}  
+Plan Status: {{ planStatus }}  
+***  
+{% for ult in unlisted_trades %}
+{{ ult["symbol"] }}&amp;nbsp;&amp;nbsp;&amp;nbsp;{{ ult["asset_name"] }}&amp;nbsp;&amp;nbsp;&amp;nbsp;LISTED-{{ ult["listingStatus"] }}  
+| Amount | Order Type | Status | Currency |  
+| --- | --- | --- | --- |  
+| {{ ult["targetPrice"] }} | {{ ult["orderType"] }} | {{ ult["status"] }} | {{ ult["currency"] }} |  
+
+Notes: {{ ult["notes"] }}  
+***
+{% endfor %}</spiffworkflow:instructionsForEndUser>
+        <spiffworkflow:properties>
+          <spiffworkflow:property name="formJsonSchemaFilename" value="approve-trade-schema.json" />
+          <spiffworkflow:property name="formUiSchemaFilename" value="" />
+        </spiffworkflow:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>Flow_1qgr2fx</bpmn:incoming>
       <bpmn:outgoing>Flow_1kku8kx</bpmn:outgoing>
     </bpmn:userTask>
@@ -88,12 +108,12 @@
     </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="Flow_1kku8kx" sourceRef="Activity_0frkzn5" targetRef="Gateway_0lg54xw" />
     <bpmn:sequenceFlow id="Flow_0v92u99" sourceRef="Gateway_1pw6poh" targetRef="Gateway_1aghzfh" />
-    <bpmn:inclusiveGateway id="Gateway_1pw6poh">
-      <bpmn:incoming>Flow_0a3cww5</bpmn:incoming>
-      <bpmn:incoming>Flow_0hnvk1b</bpmn:incoming>
-      <bpmn:outgoing>Flow_0v92u99</bpmn:outgoing>
-    </bpmn:inclusiveGateway>
     <bpmn:userTask id="Activity_1tf4z2e" name="Approve Listed Trade">
+      <bpmn:extensionElements>
+        <spiffworkflow:properties>
+          <spiffworkflow:property name="formJsonSchemaFilename" value="approve-trade-schema.json" />
+        </spiffworkflow:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>Flow_1128nl1</bpmn:incoming>
       <bpmn:outgoing>Flow_0a3cww5</bpmn:outgoing>
     </bpmn:userTask>
@@ -101,10 +121,35 @@
       <bpmn:conditionExpression>is_unlisted_trades</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:userTask id="Activity_1auuu0e" name="Approve Unlisted Trade">
+      <bpmn:extensionElements>
+        <spiffworkflow:properties>
+          <spiffworkflow:property name="formJsonSchemaFilename" value="approve-trade-schema.json" />
+        </spiffworkflow:properties>
+      </bpmn:extensionElements>
       <bpmn:incoming>Flow_1dwbrkg</bpmn:incoming>
       <bpmn:outgoing>Flow_0hnvk1b</bpmn:outgoing>
     </bpmn:userTask>
     <bpmn:sequenceFlow id="Flow_0hnvk1b" sourceRef="Activity_1auuu0e" targetRef="Gateway_1pw6poh" />
+    <bpmn:exclusiveGateway id="Gateway_1l2wyum">
+      <bpmn:incoming>Flow_1h8hgmi</bpmn:incoming>
+      <bpmn:outgoing>Flow_1g5pz87</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1qgr2fx</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gateway_0lg54xw">
+      <bpmn:incoming>Flow_0mbjz4h</bpmn:incoming>
+      <bpmn:incoming>Flow_1kku8kx</bpmn:incoming>
+      <bpmn:outgoing>Flow_1ogjs9z</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gateway_0z5dwr1">
+      <bpmn:incoming>Flow_07s7jpr</bpmn:incoming>
+      <bpmn:outgoing>Flow_1128nl1</bpmn:outgoing>
+      <bpmn:outgoing>Flow_1dwbrkg</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:exclusiveGateway id="Gateway_1pw6poh">
+      <bpmn:incoming>Flow_0a3cww5</bpmn:incoming>
+      <bpmn:incoming>Flow_0hnvk1b</bpmn:incoming>
+      <bpmn:outgoing>Flow_0v92u99</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_0blz2ao">
@@ -138,24 +183,12 @@
       <bpmndi:BPMNShape id="Gateway_1aghzfh_di" bpmnElement="Gateway_1aghzfh" isMarkerVisible="true">
         <dc:Bounds x="705" y="85" width="50" height="50" />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_0225yvl_di" bpmnElement="Gateway_0z5dwr1">
-        <dc:Bounds x="415" y="535" width="50" height="50" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_16zsnqg_di" bpmnElement="Activity_10oofm8">
         <dc:Bounds x="500" y="200" width="100" height="80" />
         <bpmndi:BPMNLabel />
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_16ehlqx_di" bpmnElement="Gateway_1l2wyum">
-        <dc:Bounds x="415" y="275" width="50" height="50" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_1iji6us_di" bpmnElement="Gateway_0lg54xw">
-        <dc:Bounds x="635" y="275" width="50" height="50" />
-      </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_0haur19_di" bpmnElement="Activity_0frkzn5">
         <dc:Bounds x="500" y="320" width="100" height="80" />
-      </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape id="Gateway_0pyfv98_di" bpmnElement="Gateway_1pw6poh">
-        <dc:Bounds x="635" y="535" width="50" height="50" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Activity_07j0005_di" bpmnElement="Activity_1tf4z2e">
         <dc:Bounds x="500" y="460" width="100" height="80" />
@@ -164,13 +197,21 @@
       <bpmndi:BPMNShape id="Activity_1pok6om_di" bpmnElement="Activity_1auuu0e">
         <dc:Bounds x="500" y="580" width="100" height="80" />
       </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1c7e06r_di" bpmnElement="Gateway_1l2wyum" isMarkerVisible="true">
+        <dc:Bounds x="415" y="275" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_0r6ussq_di" bpmnElement="Gateway_0lg54xw" isMarkerVisible="true">
+        <dc:Bounds x="635" y="275" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1enqlls_di" bpmnElement="Gateway_0z5dwr1" isMarkerVisible="true">
+        <dc:Bounds x="415" y="535" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1b1sgzj_di" bpmnElement="Gateway_1pw6poh" isMarkerVisible="true">
+        <dc:Bounds x="635" y="535" width="50" height="50" />
+      </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge id="Flow1_1754934525701_di" bpmnElement="Flow1_1754934525701">
         <di:waypoint x="218" y="110" />
         <di:waypoint x="275" y="110" />
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge id="Flow_0er1t58_di" bpmnElement="Flow_0er1t58">
-        <di:waypoint x="325" y="110" />
-        <di:waypoint x="705" y="110" />
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge id="Flow_08zyecc_di" bpmnElement="Flow_08zyecc">
         <di:waypoint x="755" y="110" />

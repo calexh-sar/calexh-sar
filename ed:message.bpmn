@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:spiffworkflow="http://spiffworkflow.org/bpmn/schema/1.0/core" id="Definitions_96f6665" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="3.0.0-dev">
+  <bpmn:process id="Process_1755042109582" isExecutable="true">
+    <bpmn:startEvent id="StartEvent_1755042109582">
+      <bpmn:outgoing>Flow1_1755042109582</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:endEvent id="EndEvent_1755042109582">
+      <bpmn:incoming>Flow2_1755042109582</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow1_1755042109582" sourceRef="StartEvent_1755042109582" targetRef="Task_1755042109582" />
+    <bpmn:sequenceFlow id="Flow2_1755042109582" sourceRef="Task_1755042109582" targetRef="EndEvent_1755042109582" />
+    <bpmn:manualTask id="Task_1755042109582">
+      <bpmn:extensionElements>
+        <spiffworkflow:instructionsForEndUser>Pending message: {{ task }}</spiffworkflow:instructionsForEndUser>
+        <spiffworkflow:postScript>payload = {
+    "name": "Diversified Portfolio Allocation",
+    "totalEstimatedValue": 850000, 
+    "planStatus": "DRAFT",
+    "tradeItems": [
+        {"id": "1", "asset": {"id": "1", "symbol": "MSFT", "name": "Microsoft Corporation", "assetType": "LISTED", "listingStatus": "EQUITIES", "exchange": "NASDAQ", "currency": "USD"}, "action": "BUY", "quantity": 500, "targetPrice": 420, "orderType": "LIMIT", "status": "Proposed", "notes": "Core equity position for AI exposure"},
+        {"id": "2", "asset": {"id": "2", "symbol": "US30Y", "name": "30-Year Treasury Bond", "assetType": "LISTED", "listingStatus": "FIXED INCOME", "exchange": "NYSE", "currency": "USD"}, "action": "BUY", "quantity": 1, "targetPrice": 300000, "orderType": "MARKET", "status": "Proposed", "notes": "Duration hedge against interest rate risk"},
+        {"id": "3", "asset": {"id": "3", "symbol": "RENAISSANCE", "name": "Renaissance Medallion Fund", "assetType": "UNLISTED", "listingStatus": "HEDGE FUND", "exchange": "", "currency": "USD"}, "action": "BUY", "quantity": 1, "targetPrice": 150000, "orderType": "MARKET", "status": "Proposed", "notes": "Quantitative alpha generation strategy"},
+        {"id": "4", "asset": {"id": "4", "symbol": "APOLLO-IX", "name": "Apollo Strategic Fund IX", "assetType": "UNLISTED", "listingStatus": "PRIVATE EQUITY", "exchange": "", "currency": "USD"}, "action": "BUY", "quantity": 1, "targetPrice": 190000, "orderType": "MARKET", "status": "Proposed", "notes": "Long-term illiquid growth allocation"}
+        ]
+}</spiffworkflow:postScript>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow1_1755042109582</bpmn:incoming>
+      <bpmn:outgoing>Flow2_1755042109582</bpmn:outgoing>
+    </bpmn:manualTask>
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Process_1755042109582">
+      <bpmndi:BPMNShape id="StartEvent_1755042109582_di" bpmnElement="StartEvent_1755042109582">
+        <dc:Bounds x="182" y="142" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_0e1pipe_di" bpmnElement="Task_1755042109582">
+        <dc:Bounds x="260" y="120" width="100" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_1755042109582_di" bpmnElement="EndEvent_1755042109582">
+        <dc:Bounds x="652" y="142" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow1_1755042109582_di" bpmnElement="Flow1_1755042109582">
+        <di:waypoint x="218" y="160" />
+        <di:waypoint x="260" y="160" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow2_1755042109582_di" bpmnElement="Flow2_1755042109582">
+        <di:waypoint x="360" y="160" />
+        <di:waypoint x="652" y="160" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
