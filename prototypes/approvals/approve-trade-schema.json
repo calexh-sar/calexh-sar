@@ -9,6 +9,10 @@
         "Approved",
         "Rejected"
       ]
+    },
+    "comments": {
+      "type": "string",
+      "title": "Comments"
     }
   }
 }
